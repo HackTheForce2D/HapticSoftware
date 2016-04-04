@@ -1,6 +1,6 @@
 #include "qsfmlcanvas.h"
 
-QSfmlCanvas::QSfmlCanvas(QWidget* Parent, const QPoint& Position, const QSize& Size, unsigned int FrameTime) :
+QSfmlCanvas::QSfmlCanvas(QWidget* Parent, unsigned int FrameTime) :
 QWidget       (Parent),
 myInitialized (false)
 {
@@ -11,10 +11,6 @@ myInitialized (false)
 
     // Set strong focus to enable keyboard events to be received
     setFocusPolicy(Qt::StrongFocus);
-
-    // Setup the widget geometry
-    move(Position);
-    resize(Size);
 
     // Setup the timer
     myTimer.setInterval(FrameTime);

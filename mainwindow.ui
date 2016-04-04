@@ -53,12 +53,12 @@
      </item>
     </layout>
    </widget>
-   <widget class="QOpenGLWidget" name="openGLWidget">
+   <widget class="Visual" name="openGLWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>120</x>
       <y>0</y>
-      <width>351</width>
+      <width>371</width>
       <height>261</height>
      </rect>
     </property>
@@ -85,6 +85,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Visual</class>
+   <extends>QOpenGLWidget</extends>
+   <header>visual.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

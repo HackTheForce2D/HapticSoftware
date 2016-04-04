@@ -11,7 +11,7 @@ class QSfmlCanvas : public QWidget, public sf::RenderWindow
 {
 public:
     //explicit QSfmlCanvas(QWidget *parent = 0);
-    QSfmlCanvas(QWidget* Parent, const QPoint& Position, const QSize& Size, unsigned int FrameTime = 0);
+    QSfmlCanvas(QWidget* Parent, unsigned int FrameTime = 0);
 
     virtual ~QSfmlCanvas();
 

@@ -9,7 +9,7 @@
 class Visual : public QSfmlCanvas
 {
 public:
-    Visual(QWidget* Parent, const QPoint& Position, const QSize& Size);
+    Visual(QWidget* Parent);
     void setPhysics(Physics physics);
     void startDisplay();
 private:
