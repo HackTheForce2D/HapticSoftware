@@ -8,15 +8,22 @@
 
 class Visual : public QSfmlCanvas
 {
+    Q_OBJECT
 public:
     Visual(QWidget* Parent);
     void setPhysics(Physics physics);
     void startDisplay();
+
+public slots:
+
 private:
-    Physics physics_;
+    Physics physics;
     sf::VertexArray polygon;
+    sf::Transform physics2graphics;
+    void defineTransform();
     void getObjectLocations();
     QVector2D convertCoordinates();
+    void resizeEvent(QResizeEvent * event);
     void OnInit();
     void OnUpdate();
 };
