@@ -23,12 +23,17 @@ void Visual::OnUpdate()
     //draw(polygon);
    // TODO : get body positions using the pointers
     //physics.step();
-    physics.updateBodies();
-    for(int i(0);i<physics.getBodyCount();i++)
+    if(physics != nullptr)
     {
-        draw(physics.getBody(i));
+        physics->updateBodies();
+        size_t bodyCount = physics->getBodyCount();
+        for(size_t i(0);i< bodyCount;i++)
+        {
+            draw(physics->getBody(i));
+        }
+        draw(physics->getEffector());
     }
-    draw(physics.getEffector());
+
 }
 
 void Visual::OnInit()
@@ -49,9 +54,7 @@ for(int i(0);i<19;i++)
 }
 polygon[19].position = polygon[0].position;
 polygon[19].color = polygon[0].color;
-physics.createEntities();
 defineTransform();
-physics.run();
 }
 
 void Visual::defineTransform()
@@ -59,11 +62,18 @@ void Visual::defineTransform()
     QSize windowSize = this->size();
     physics2graphics = physics2graphics.Identity;
     physics2graphics.translate(windowSize.width()/2,windowSize.height()/2);
-    physics2graphics.scale(windowSize.width()/33,-windowSize.height()/21);
-    physics.setTransform(physics2graphics);
+    physics2graphics.scale(windowSize.width()/35,-windowSize.height()/21);
 }
 
 void Visual::resizeEvent(QResizeEvent * event)
 {
     defineTransform();
+}
+
+void Visual::setPhysics(Physics *newPhysics)
+{
+    physics = newPhysics;
+    physics->createEntities();
+    physics->setTransform(physics2graphics);
+    physics->startSim();
 }

@@ -12,7 +12,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Haptics
 TEMPLATE = app
 
-CONFIG(release, debug|release): LIBS += -lBox2D -lsfml-graphics -lsfml-window
+CONFIG(release, debug|release): LIBS += -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -31,6 +31,8 @@ HEADERS  += mainwindow.h \
     body.h \
     effector.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    newobject.ui \
+    connecttodevice.ui
 
 unix:!macx: LIBS += -lBox2D -lsfml-graphics -lsfml-window

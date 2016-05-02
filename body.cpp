@@ -68,7 +68,7 @@ void Body::updatePosition()
                 for (b2JointEdge *jointEdge = nodeList[i]->GetJointList();
                      jointEdge; jointEdge=jointEdge->next)
                 {
-                   energy +=jointEdge->joint->GetReactionForce(invTimeStep).LengthSquared();
+                   //energy +=jointEdge->joint->GetReactionForce(invTimeStep).LengthSquared();
                 }
             }
             energy *= 255.f/MAX_ENERGY;

@@ -3,13 +3,13 @@
 
 Physics::Physics()
 {
-gravity = b2Vec2(0.0f, -10.0f);
+//gravity = b2Vec2(0.0f, -10.0f);
+gravity = b2Vec2(0.0f, 0.0f);
 world = new b2World(gravity);
 velocityIterations = 6;
 positionIterations = 2;
-timeStep = 0.005f;
+timeStep = 0.001f;
 timer = new QTimer(this);
-connect(timer, SIGNAL(timeout()), this, SLOT(step()));
 }
 
 
@@ -119,17 +119,19 @@ void Physics::createEffector(float radius)
     effectorShape.m_radius = radius;
     b2FixtureDef effectorFixtureDef;
     effectorFixtureDef.shape = &effectorShape;
+    effectorFixtureDef.density = .1;
     effectorPhysical->CreateFixture(&effectorFixtureDef);
+    effectorPhysical->SetLinearDamping(40);
     effector.setPhysical(effectorPhysical);
     effector.setRadius(radius);
 }
 
  void Physics::createEntities()
  {
-     createWorkspace(-16,16,-10,10,1);
-     createBall(b2Vec2(-5,5),2,5.f,0.5f,1,0.4);
-     createBall(b2Vec2(0,5),2,10.f,0.5f,1,0.4);
-     createBall(b2Vec2(5,5),2,15.f,0.8f,2,0.4);
+     createWorkspace(-17.7,17.7,-10,10,1);
+     createBall(b2Vec2(-5,5),2,25.f,0.5f,1,0.4);
+     createBall(b2Vec2(0,5),2,35.f,0.5f,1,0.4);
+     createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
      createEffector(1);
      //createSolidWall(b2Vec2(0,-8.0f),1, b2Vec2(10,.25)); //TODO: fix rotation
      //emit worldCreated();
@@ -165,20 +167,32 @@ void Physics::updateBodies()
     {
         bodyList[i].updatePosition();
     }
-    effector.updatePosition();
+    effector.updateGraphic();
 }
 
+void Physics::setHapticInterface(HapticInterface *i)
+{
+    hapticDevice = i;
+}
 
 void Physics::step()
 {
+    QVector2D position(hapticDevice->getPosition());
+   // std::cout << "position : " << position.x() << " "<< position.y() << std::endl;
+    emit forceUpdated(effector.updateForce(position));
     world->Step(timeStep,velocityIterations, positionIterations);
 }
 
-void Physics::run()
+void Physics::run(){
+connect(timer, SIGNAL(timeout()), this, SLOT(step()));
+exec();
+}
+
+void Physics::startSim()
 {
     timer->start((int)(timeStep*1000));
 }
-void Physics::stop()
+void Physics::stopSim()
 {
     timer->stop();
 }
