@@ -2,14 +2,14 @@
 #define HAPTICINTERFACE_H
 
 #include<QVector2D>
-#include<QTcpSocket>
+#include<QtNetwork>
 #include<QHostAddress>
 #include<vector>
 #include <cmath>
 
 const double pi = 3.1415926535897;
 
-class HapticInterface : public QObject
+class HapticInterface : public QThread
 {
     Q_OBJECT
 public:
@@ -17,10 +17,12 @@ public:
     bool connectToHost(QString host);
     QVector2D getPosition();
     QVector2D getVelocity();
-    void setForce(QVector2D force);
+    void run();
 
-private slots:
-    void readyRead();
+public slots:
+    void readData();
+    void reportState();
+    void setForce(QVector2D newForce);
 
 private:
     QVector2D angle,angularVelocity,position,velocity;
@@ -29,13 +31,13 @@ private:
     float a,b,c;
 
     QByteArray data;
+    char dataIn[8],dataOut[4],buffer[8000];
     QTcpSocket *device;
 
-    QVector2D angle2position();
-    QVector2D force2torque();
+    void angle2position();
+    void force2torque();
     void encodeData();
     void decodeData();
-    bool receiveData();
     bool sendData();
 };
 
