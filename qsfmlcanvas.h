@@ -21,16 +21,16 @@ public:
 private:
     virtual void OnInit();
 
-       virtual void OnUpdate();
+    virtual void OnUpdate();
 
-       virtual QPaintEngine* paintEngine() const;
+    virtual QPaintEngine* paintEngine() const;
 
-       virtual void showEvent(QShowEvent*);
+    virtual void showEvent(QShowEvent*);
 
-       virtual void paintEvent(QPaintEvent*);
+    virtual void paintEvent(QPaintEvent*);
 
-       QTimer myTimer;
-       bool   myInitialized;
+    QTimer myTimer;
+    bool   myInitialized;
 };
 
 #endif // QSFMLCANVAS_H

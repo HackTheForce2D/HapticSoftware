@@ -4,16 +4,11 @@
 Visual::Visual(QWidget* Parent) :
     QSfmlCanvas(Parent)
 {
-
+    physics = nullptr;
 }
 
 void Visual::OnUpdate()
 {
-    //test
-    for(int i(0);i<19;i++){
-       polygon[i].position += sf::Vector2f(std::rand()%3-1,std::rand()%3-1);
-    }
-    polygon[19].position = polygon[1].position;
    // Body test = physics.getBody(0);
    // test.updatePosition();
     //polygon = test.getDrawable();
@@ -26,6 +21,11 @@ void Visual::OnUpdate()
     if(physics != nullptr)
     {
         physics->updateBodies();
+        size_t workspBodyCount = physics->getWorkspWallCount();
+        for(size_t i(0);i<workspBodyCount;i++)
+        {
+            draw(physics->getWorkspWall(i));
+        }
         size_t bodyCount = physics->getBodyCount();
         for(size_t i(0);i< bodyCount;i++)
         {
@@ -33,41 +33,41 @@ void Visual::OnUpdate()
         }
         draw(physics->getEffector());
     }
+    //polygon[0].position = physics2graphics.transformPoint(sf::Vector2f(0,0));
+    //polygon[1].position = physics2graphics.transformPoint(sf::Vector2f(-16,-10));
+    //polygon[2].position = physics2graphics.transformPoint(sf::Vector2f(16,10));
+    //polygon[3].position = sf::Vector2f(1,1);
+   // draw(polygon);
 
 }
 
 void Visual::OnInit()
 {
-    //test
-polygon = sf::VertexArray(sf::TrianglesFan, 20);
-for(int i(0);i<19;i++)
-{
-   polygon[i].position = sf::Vector2f(50,50)+sf::Vector2f(rand()%8*i,rand()%8*i);
-   int colorChosen = rand()%3;
-   if(colorChosen  == 0){
-       polygon[i].color = sf::Color::Red;
-   }else if(colorChosen  == 1){
-     polygon[i].color = sf::Color::Green;
-   }else{
-     polygon[i].color = sf::Color::Blue;
-   }
-}
-polygon[19].position = polygon[0].position;
-polygon[19].color = polygon[0].color;
-defineTransform();
+    defineTransform(this->size());
+    polygon = sf::VertexArray(sf::Points, 4);
 }
 
-void Visual::defineTransform()
+void Visual::defineTransform(QSize windowSize)
 {
-    QSize windowSize = this->size();
     physics2graphics = physics2graphics.Identity;
-    physics2graphics.translate(windowSize.width()/2,windowSize.height()/2);
-    physics2graphics.scale(windowSize.width()/35,-windowSize.height()/21);
+    std::cout << "window Size : " << windowSize.width() <<" "<< windowSize.height() <<std::endl;
+    std::cout << "Window Position " << this->pos().x() << " "<< this->pos().y() << std::endl;
+    std::cout << "Render size " << getSize().x << " "<< getSize().y << std::endl;
+    sf::Vector2f center(windowSize.width()/2,windowSize.height()/2);
+    sf::Vector2f scale(windowSize.width()/36,-windowSize.height()/22);
+    physics2graphics.translate(center);
+    physics2graphics.scale(scale);
+    sf::Vector2f test = physics2graphics.transformPoint(sf::Vector2f(0,0));
+    std::cout << "origin : " << test.x <<" "<< test.y <<std::endl;
+    if(physics != nullptr) physics->setTransform(physics2graphics);
+
 }
 
-void Visual::resizeEvent(QResizeEvent * event)
+void Visual::resizeEvent(QResizeEvent *event)
 {
-    defineTransform();
+    sf::RenderWindow::setSize(sf::Vector2u(event->size().width(),event->size().height()));
+    setSize(sf::Vector2u(event->size().width(),event->size().height()));
+    defineTransform(event->size());
 }
 
 void Visual::setPhysics(Physics *newPhysics)

@@ -20,10 +20,15 @@ public:
     void finish();
     void setTransform(sf::Transform transform);
     void updatePosition();
+    long int getId() const;
+    bool operator==(const Body& rhs);
+    void destroyNodes();
 
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     int bodyType;
+    long int id;
+    bool selected;
     float invTimeStep;
     float nodeRadius;
     sf::Vector2f convertPosition(b2Vec2 v);

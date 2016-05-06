@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     hapticinterface.cpp \
     qsfmlcanvas.cpp \
     body.cpp \
-    effector.cpp
+    effector.cpp \
+    connectiondialog.cpp
 
 HEADERS  += mainwindow.h \
     physics.h \
@@ -29,10 +30,11 @@ HEADERS  += mainwindow.h \
     hapticinterface.h \
     qsfmlcanvas.h \
     body.h \
-    effector.h
+    effector.h \
+    connectiondialog.h
 
 FORMS    += mainwindow.ui \
     newobject.ui \
-    connecttodevice.ui
+    connectiondialog.ui
 
 unix:!macx: LIBS += -lBox2D -lsfml-graphics -lsfml-window

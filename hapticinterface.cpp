@@ -4,9 +4,9 @@
 HapticInterface::HapticInterface(QObject *parent) : QThread(parent)
 {
     device = new QTcpSocket(this);
-    a = 40;
+    a = 60;
     b = 100;
-    c = 125;
+    c = 135;
     A=QVector2D(-a/2,10);B=QVector2D(0,0);C=QVector2D(0,0);
     D=QVector2D(0,0);E=QVector2D(a/2,10);
     //encoderOffset = 0,0;
@@ -22,6 +22,7 @@ void HapticInterface::setForce(QVector2D newForce)
 {
     //std::cout << "updating force" << std::endl;
     force = newForce;
+    updateTorque();
 }
 
 QVector2D HapticInterface::getPosition()
@@ -33,9 +34,9 @@ QVector2D HapticInterface::getVelocity()
     return velocity;
 }
 
-bool HapticInterface::connectToHost(QString host)
+bool HapticInterface::connectToHost(QString host,int port)
 {
-    device->connectToHost(host, 53200);
+    device->connectToHost(host,port);
     connect(device, SIGNAL(connected()), this, SLOT(reportState()));
     connect(device, SIGNAL(disconnected()), this, SLOT(reportState()));
     return device->waitForConnected();
@@ -55,6 +56,7 @@ void HapticInterface::angle2position()
     float thetaB(DBC + (float)atan((D.y()-B.y())/(D.x()-B.x())));
     C = B + QVector2D(c*cos(thetaB),c*sin(thetaB));
     //std::cout <<"C : "<< C.x() << " " << C.y() << std::endl;
+    if(position != C) updateJacobian();
     position = C;
 }
 /*
@@ -63,6 +65,35 @@ QVector2D force2torque();
 void decodeData();
 int receiveData();
 */
+void HapticInterface::updateJacobian()
+{
+    float denominator((C.y()-D.y())*(C.x()-B.x())-(C.x()-D.x())*(C.y()-B.y()));
+    J(0,0) = -(C.y()-D.y())*((C.x()-B.x())*
+              (C.y()-A.y())-(C.y()-B.y())*(C.x()-A.x()))/denominator;
+    J(0,1) = -(C.y()-E.y())-(C.y()-D.y())*((C.x()-E.x())*
+              (C.y()-B.y())-(C.y()-E.y())*(C.x()-B.x()))/denominator;
+    J(1,0) = (C.x()-D.x())*((C.x()-B.x())*
+             (C.y()-A.y())-(C.y()-B.y())*(C.x()-A.x()))/denominator;
+    J(1,1) =  (C.x()-E.x())+(C.x()- D.x())*((C.x()-E.x())*
+             (C.y()-B.y())-(C.y()-E.y())*(C.x()-B.x()))/denominator;
+    //updateTorque();
+}
+
+void HapticInterface::updateTorque()
+{
+     torque.setX(J(0,0)*force.x() + J(1,0)*force.y());
+     torque.setY(J(0,1)*force.x() + J(1,1)*force.y());
+     if(abs(torque.x()) > 500 || abs(torque.y()) > 500)
+     {
+         torque = 500*(torque/(std::max(abs(torque.x()),abs(torque.y()))));
+     }
+     //temporary
+     if(abs(force.x()) > 500 || abs(force.y()) > 500)
+     {
+         force = 500*(force/(std::max(abs(force.x()),abs(force.y()))));
+     }
+}
+
 void HapticInterface::encodeData()
 {
    //Encode each component of the force as a 10-bit number
@@ -70,11 +101,10 @@ void HapticInterface::encodeData()
    int16_t encodedValue;
    data.clear();
    //originalValue = force.x();
-  // force.setX(-200); force.setY(-600);
-   encodedValue = (int16_t)(force.x());
+   encodedValue = (int16_t)(force.x()+500);
    data.append((uchar)((encodedValue>>8)&255));
    data.append((uchar)((encodedValue)&255));
-   encodedValue = (int16_t)(force.y());
+   encodedValue = (int16_t)(force.y()+500);
    data.append((uchar)((encodedValue>>8)&255));
    data.append((uchar)((encodedValue)&255));
    //
@@ -154,7 +184,7 @@ void HapticInterface::decodeData()
      //std::cout << position.x() << " " << position.y()<< std::endl;
  }
 /*
-int HapticInterface::~HapticInterface()
+HapticInterface::~HapticInterface()
 {
     exit(0);
     return 0;
