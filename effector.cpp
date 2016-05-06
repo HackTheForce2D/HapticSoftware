@@ -57,9 +57,9 @@ QVector2D Effector::updateForce(QVector2D position)
     b2Vec2 positionb2(convertPosition(positionSf));
     //std::cout << positionb2.x << " " << positionb2.y << std::endl;
     //Proportional control
-    kp = 300;
+    kp = 100;
     force = kp*(positionb2 - physical->GetPosition());
-    physical->ApplyForce(force,physical->GetWorldCenter(),1);
+    physical->ApplyForce(force,physical->GetWorldCenter(),true);
     //return the reaction to the force as a QVector2D
     //to be used by the interface with the device
     return (QVector2D(-force.x,-force.y));

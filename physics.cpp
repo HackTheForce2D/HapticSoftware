@@ -3,8 +3,7 @@
 
 Physics::Physics()
 {
-//gravity = b2Vec2(0.0f, -10.0f);
-gravity = b2Vec2(0.0f, 0.0f);
+gravity = b2Vec2(0.0f, -10.0f);
 world = new b2World(gravity);
 velocityIterations = 6;
 positionIterations = 2;
@@ -12,12 +11,11 @@ timeStep = 0.001f;
 timer = new QTimer(this);
 }
 
-
-void Physics::createSolidWall(b2Vec2 position,float rotation, b2Vec2 size)
+void Physics::createSolidWall(b2Vec2 position, float rotation,
+                              b2Vec2 size, bool isWorkspace=false)
 {
     Body wall;
     wall.setType(WALL);
-    wall.setTimeStep(timeStep);
     b2BodyDef wallDef; //static body by default
     wallDef.position.Set(position.x,position.y);
     wallDef.angle = rotation;
@@ -29,20 +27,26 @@ void Physics::createSolidWall(b2Vec2 position,float rotation, b2Vec2 size)
     wallBody->CreateFixture(&wallFixtureDef);
     wall.addNode(wallBody);
     wall.finish();
-    bodyList.append(wall);
+    if(isWorkspace)
+    {
+        workspaceWalls.append(wall);
+    }else
+    {
+        bodyList.append(wall);
+    }
 }
 
 void Physics::createWorkspace(float left, float right, float bottom,
                               float top, float thickness)
 {
     createSolidWall(b2Vec2(left-thickness/2,(top+bottom)/2),  //left wall
-                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness));
+                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true);
     createSolidWall(b2Vec2(right+thickness/2,(top+bottom)/2), //right wall
-                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness));
+                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true);
     createSolidWall(b2Vec2((left+right)/2,bottom-thickness/2),//bottom wall
-                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2));
+                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true);
     createSolidWall(b2Vec2((left+right)/2,top+thickness/2),   //top wall
-                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2));
+                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true);
 }
 
 void Physics::createBall(b2Vec2 position,float radius, float stiffness,
@@ -50,7 +54,6 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
 {
     Body ball;
     ball.setType(BALL);
-    ball.setTimeStep(timeStep);
     float nodeRadius = maxSpacing*.45;
     ball.setNodeRadius(nodeRadius);
     float mass(density*radius*radius);
@@ -100,7 +103,9 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                            ball.getNode(1)->GetWorldCenter());
     world->CreateJoint(&nodeLinkDef);
     ball.finish();
+    ball.setTransform(physics2graphics);
     bodyList.append(ball);
+    std::cout << bodyList.size() << std::endl;
 }
 /*
 void Physics::createPlane(b2Vec2 position, float stiffness,
@@ -128,10 +133,19 @@ void Physics::createEffector(float radius)
 
  void Physics::createEntities()
  {
-     createWorkspace(-17.7,17.7,-10,10,1);
-     createBall(b2Vec2(-5,5),2,25.f,0.5f,1,0.4);
+      std::cout << "creating entities" << std::endl;
+     createWorkspace(-17.7*.95,17.7*.95,-10*.95,10*.95,1);
+     std::cout << "workspace created" << std::endl;
+     createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.4);
      createBall(b2Vec2(0,5),2,35.f,0.5f,1,0.4);
      createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
+     createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2));
+     //createBall(b2Vec2(5,0),2,50.f,0.8f,2,0.4);
+     //createBall(b2Vec2(0,0),2,50.f,0.8f,2,0.4);
+     //createBall(b2Vec2(-5,0),2,50.f,0.8f,2,0.4);
+     //createBall(b2Vec2(5,-5),2,50.f,0.8f,2,0.4);
+     //createBall(b2Vec2(0,-5),2,50.f,0.8f,2,0.4);
+     //createBall(b2Vec2(-5,-5),2,50.f,0.8f,2,0.4);
      createEffector(1);
      //createSolidWall(b2Vec2(0,-8.0f),1, b2Vec2(10,.25)); //TODO: fix rotation
      //emit worldCreated();
@@ -147,6 +161,15 @@ Body Physics::getBody(int index)
     return bodyList[index];
 }
 
+int Physics::getWorkspWallCount()
+{
+    return workspaceWalls.size();
+}
+Body Physics::getWorkspWall(int index)
+{
+    return workspaceWalls[index];
+}
+
 Effector Physics::getEffector()
 {
     return effector;
@@ -154,11 +177,16 @@ Effector Physics::getEffector()
 
 void Physics::setTransform(sf::Transform t)
 {
+    physics2graphics = t;
     for(int i(0);i<getBodyCount();i++)
     {
-        bodyList[i].setTransform(t);
+        bodyList[i].setTransform(physics2graphics);
     }
-    effector.setTransform(t);
+    for(int i(0);i<getWorkspWallCount();i++)
+    {
+        workspaceWalls[i].setTransform(physics2graphics);
+    }
+    effector.setTransform(physics2graphics);
 }
 
 void Physics::updateBodies()
@@ -168,6 +196,26 @@ void Physics::updateBodies()
         bodyList[i].updatePosition();
     }
     effector.updateGraphic();
+}
+
+void Physics::addBall() //TEMP
+{
+    createBall(b2Vec2(0,0),2,35.f,0.5f,1,0.4);
+}
+
+void Physics::deleteBody()
+{
+    stopSim();
+    int INDEX = 0;
+   // b2Body *toBeDestroyed = bodyList[INDEX].getNode(0);
+    //world->DestroyBody(toBeDestroyed);
+    if(bodyList.size()>INDEX)
+    {
+        bodyList[INDEX].destroyNodes();
+        bodyList.removeAt(INDEX);
+    }
+    std::cout <<  bodyList.size() << " bodies left"<< std::endl;
+    startSim();
 }
 
 void Physics::setHapticInterface(HapticInterface *i)
@@ -202,4 +250,9 @@ void Physics::reset()
     bodyList.clear();
     world = new b2World(gravity);
     createEntities();
+}
+
+QList<Body> * Physics::getObjects()
+{
+    return &bodyList;
 }

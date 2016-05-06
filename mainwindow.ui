@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>638</width>
-    <height>323</height>
+    <width>912</width>
+    <height>427</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Haptics</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -105,13 +105,17 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="statusTip">
+    <string>No device connected</string>
+   </property>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>638</width>
+     <width>912</width>
      <height>25</height>
     </rect>
    </property>
@@ -149,22 +153,5 @@
   <tabstop>buttonStop</tabstop>
  </tabstops>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonAddObject</sender>
-   <signal>clicked()</signal>
-   <receiver>objectList</receiver>
-   <slot>hide()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>53</x>
-     <y>152</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>144</x>
-     <y>89</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

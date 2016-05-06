@@ -53,7 +53,9 @@ int main()
     window.setPosition(sf::Vector2i(100,50));
     std::ostringstream texteSurImage;
     //------------paramètres du patographe en mm--------------------------
-    double a(40),b(100),c(125),ymin(50),f(177),g(100),OAB(0),OED(0);
+    //double a(40),b(100),c(125),ymin(50),f(177),g(100),OAB(0),OED(0);
+    const double a(60),b(100),c(135),ymin(70),f(177),g(100);
+    double OAB(0),OED(0);
 	sf::Vector2f A(-a/2,10),Bphys(0,0),B(0,0),Cphys(0,0),C(0,0),Dphys(0,0),D(0,0),E(a/2,10);
 	sf::Vector2f origine(400,0);
 	//-------------------------------------------------------------------
@@ -123,7 +125,7 @@ int main()
 			//--------------------------------------------------------------------		
 			}else if(event.type == sf::Event::MouseButtonPressed){
 			std::cout << "Taux graphique : "  << tauxGraphique << " Hz" << std::endl;
-			std::cout <<  "Taux haptique : " << tauxHaptique/1000 << " kHz" << std::endl;
+			std::cout <<  "Taux haptique : " << tauxHaptique << " Hz" << std::endl;
 			std::cout << "Couple M1 : " << couple.x << " mNm" << std::endl;
 			std::cout << "Couple M2 : " << couple.y << " mNm" << std::endl;
 			std::cout << "OAB : " << OAB*180/pi << "°" << std::endl;
@@ -137,7 +139,7 @@ int main()
 		texteSurImage << "Frame rate : " << tauxGraphique << " Hz";
 		textTauxGr.setString(texteSurImage.str());
 		texteSurImage.str(std::string());
-		texteSurImage << "Haptic feedback rate : " << tauxHaptique/1000 << " kHz";
+		texteSurImage << "Haptic feedback rate : " << tauxHaptique << " Hz";
 		textTauxHa.setString(texteSurImage.str());
 		texteSurImage.str(std::string());
 		texteSurImage << std::fixed << std::setprecision(1) << couple.x << " mNm";

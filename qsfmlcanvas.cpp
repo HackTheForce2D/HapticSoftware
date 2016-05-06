@@ -1,13 +1,14 @@
 #include "qsfmlcanvas.h"
 
 QSfmlCanvas::QSfmlCanvas(QWidget* Parent, unsigned int FrameTime) :
-QWidget       (Parent),
+QWidget       (Parent), sf::RenderWindow(sf::VideoMode(100, 100),"Haptics",sf::Style::Resize),//FIX
 myInitialized (false)
 {
     // Setup some states to allow direct rendering into the widget
     setAttribute(Qt::WA_PaintOnScreen);
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_NoSystemBackground);
+
 
     // Set strong focus to enable keyboard events to be received
     setFocusPolicy(Qt::StrongFocus);
@@ -28,7 +29,7 @@ void QSfmlCanvas::showEvent(QShowEvent*)
         // Under X11, we need to flush the commands sent to the server to ensure that
         // SFML will get an updated view of the windows
         #ifdef Q_WS_X11
-            XFlush(QX11Info::display());
+           // XFlush(QX11Info::display());
         #endif
 
         // Create the SFML window with the widget handle

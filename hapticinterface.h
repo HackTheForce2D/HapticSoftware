@@ -2,6 +2,7 @@
 #define HAPTICINTERFACE_H
 
 #include<QVector2D>
+#include<QMatrix2x2>
 #include<QtNetwork>
 #include<QHostAddress>
 #include<vector>
@@ -14,12 +15,13 @@ class HapticInterface : public QThread
     Q_OBJECT
 public:
     explicit HapticInterface(QObject *parent = 0);
-    bool connectToHost(QString host);
     QVector2D getPosition();
     QVector2D getVelocity();
+    void updateTorque();
     void run();
 
 public slots:
+    bool connectToHost(QString host,int port);
     void readData();
     void reportState();
     void setForce(QVector2D newForce);
@@ -28,6 +30,7 @@ private:
     QVector2D angle,angularVelocity,position,velocity;
     QVector2D force,torque;
     QVector2D A,B,C,D,E;
+    QMatrix2x2 J;
     float a,b,c;
 
     QByteArray data;
@@ -38,6 +41,7 @@ private:
     void force2torque();
     void encodeData();
     void decodeData();
+    void updateJacobian();
     bool sendData();
 };
 

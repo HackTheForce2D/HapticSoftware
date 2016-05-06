@@ -15,3 +15,12 @@ MainWindow::~MainWindow()
 
 
 
+void MainWindow::on_actionConnect_triggered()
+{
+    emit findDevice();
+}
+/*
+void MainWindow::on_display_resized()
+{
+    emit displayResized(this->findChild<Visual *>("display")->size());
+}*/

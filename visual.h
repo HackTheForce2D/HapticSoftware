@@ -5,6 +5,7 @@
 #include<QVector2D>
 #include<SFML/Graphics.hpp>
 #include<physics.h>
+#include<QResizeEvent>
 
 class Visual : public QSfmlCanvas
 {
@@ -20,7 +21,7 @@ private:
     Physics *physics;
     sf::VertexArray polygon;
     sf::Transform physics2graphics;
-    void defineTransform();
+    void defineTransform(QSize windowSize);
     void getObjectLocations();
     QVector2D convertCoordinates();
     void resizeEvent(QResizeEvent * event);

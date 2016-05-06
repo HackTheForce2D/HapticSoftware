@@ -20,8 +20,12 @@ public:
     void setTimeStep(double timeStep);
     void createEntities();
     void setStiffness(int bodyIndex, double frequence,double damping);
+    int getTotalBodyCount();
     int getBodyCount();
+    int getWorkspWallCount();
     Body getBody(int index);
+    Body getWorkspWall(int index);
+    QList<Body> * getObjects();
     Effector getEffector();
     void setTransform(sf::Transform t);
     void setHapticInterface(HapticInterface *i);
@@ -33,6 +37,8 @@ public slots:
     void startSim();
     void stopSim();
     void reset();
+    void deleteBody();
+    void addBall(); //temporary
 
 signals:
     void worldCreated();
@@ -47,10 +53,13 @@ private:
     b2World* world;
     QTimer *timer;
     HapticInterface *hapticDevice;
-    QVector<Body> bodyList;
+    sf::Transform physics2graphics;
+    QList<Body> workspaceWalls;
+    QList<Body> bodyList; //Model for the ListView
     Effector effector;
     QVector2D endEffectorRealPosition;
-    void createSolidWall(b2Vec2 position, float rotation, b2Vec2 size);
+    void createSolidWall(b2Vec2 position, float rotation,
+                         b2Vec2 size, bool isWorkspace);
     void createWorkspace(float left, float right,
                          float bottom, float top, float thickness);
     void createBall(b2Vec2 position,float radius, float stiffness,
