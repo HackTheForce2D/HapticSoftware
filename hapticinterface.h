@@ -23,8 +23,14 @@ public:
 public slots:
     bool connectToHost(QString host,int port);
     void readData();
-    void reportState();
     void setForce(QVector2D newForce);
+    void disconnect();
+    void reportConnected();
+    void reportDisconnected();
+
+signals:
+    void connected();
+    void disconnected();
 
 private:
     QVector2D angle,angularVelocity,position,velocity;

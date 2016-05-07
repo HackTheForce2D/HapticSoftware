@@ -14,7 +14,8 @@ ConnectionDialog::~ConnectionDialog()
     delete ui;
 }
 
-void ConnectionDialog::on_buttonBox_clicked(QAbstractButton *button)
+//void ConnectionDialog::on_buttonBox_clicked(QAbstractButton *button)
+void ConnectionDialog::accept()
 {
     //if (button-> == QDialogButtonBox::AcceptRole)
     //if(ui->buttonBox->standardButton(button) == QDialogButtonBox::AcceptRole)
@@ -29,7 +30,7 @@ void ConnectionDialog::on_buttonBox_clicked(QAbstractButton *button)
         QString address = addressBox->text();
         int port = portSpinBox->value();
         emit connectToDevice(address,port);
-        std::cout << "signal sent" << std::endl;
+        hide();
     }
 }
 

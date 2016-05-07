@@ -19,7 +19,8 @@ public:
     ~ConnectionDialog();
 
 private slots:
-    void on_buttonBox_clicked(QAbstractButton *button);
+    //void on_buttonBox_clicked(QAbstractButton *button);
+    void accept();
 
 signals:
     void connectToDevice(QString address, int port);

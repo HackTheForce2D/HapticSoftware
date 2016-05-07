@@ -37,12 +37,14 @@ public slots:
     void startSim();
     void stopSim();
     void reset();
-    void deleteBody();
+    void selectBody(int);
+    void deleteBody(int index);
     void addBall(); //temporary
 
 signals:
     void worldCreated();
     void forceUpdated(QVector2D force);
+    void objectListUpdated(QList<Body> list);
 
 
 private:

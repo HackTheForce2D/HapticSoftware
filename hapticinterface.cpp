@@ -7,8 +7,11 @@ HapticInterface::HapticInterface(QObject *parent) : QThread(parent)
     a = 60;
     b = 100;
     c = 135;
-    A=QVector2D(-a/2,10);B=QVector2D(0,0);C=QVector2D(0,0);
-    D=QVector2D(0,0);E=QVector2D(a/2,10);
+    A=QVector2D(-a/2,10);
+    B=QVector2D(0,0);
+    C=QVector2D(0,0);
+    D=QVector2D(0,0);
+    E=QVector2D(a/2,10);
     //encoderOffset = 0,0;
 }
 
@@ -37,8 +40,8 @@ QVector2D HapticInterface::getVelocity()
 bool HapticInterface::connectToHost(QString host,int port)
 {
     device->connectToHost(host,port);
-    connect(device, SIGNAL(connected()), this, SLOT(reportState()));
-    connect(device, SIGNAL(disconnected()), this, SLOT(reportState()));
+    connect(device, SIGNAL(connected()), this, SLOT(connected()));
+    connect(device, SIGNAL(disconnected()), this, SLOT(disconnected()));
     return device->waitForConnected();
 }
 
@@ -115,28 +118,35 @@ bool HapticInterface::sendData()
     if(device->state() == QAbstractSocket::ConnectedState)
     {
         encodeData();
-        //device->write(IntToArray(data.size())); //write size of data
-        device->write(data); //write the data itself
+        //no need to write the size of the data because it's fixed (4 bytes)
+        //so we just write the data itself
+        device->write(data);
         return device->waitForBytesWritten();
     }
     else
         return false;
 }
 
-void HapticInterface::reportState()
+void HapticInterface::reportConnected()
 {
+    emit connected();
     std::cout << "device connected" << std::endl;
+}
+void HapticInterface::reportDisconnected()
+{
+    emit disconnected();
+    std::cout << "device disconnected" << std::endl;
+}
+
+void HapticInterface::disconnect()
+{
+    device->disconnectFromHost();
 }
 
 void HapticInterface::readData()
  {
-    //std::cout << "reading... " << " " << device->bytesAvailable() << std::endl;
-    //device->disconnectFromHost();
-    //data.clear();
      while(device->bytesAvailable() > 0)
      {
-         //std::cout << "received"<<  device->bytesAvailable() << std::endl;
-         //data.append(device->readAll());
          size_t bytesAvailable(device->bytesAvailable());
          // if more than 8 bytes are available, store them in buffer
          // and then take only the last 8 bytes to dataIn
