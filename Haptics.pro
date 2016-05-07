@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     qsfmlcanvas.cpp \
     body.cpp \
     effector.cpp \
-    connectiondialog.cpp
+    connectiondialog.cpp \
+    createobject.cpp
 
 HEADERS  += mainwindow.h \
     physics.h \
@@ -31,10 +32,11 @@ HEADERS  += mainwindow.h \
     qsfmlcanvas.h \
     body.h \
     effector.h \
-    connectiondialog.h
+    connectiondialog.h \
+    createobject.h
 
 FORMS    += mainwindow.ui \
-    newobject.ui \
-    connectiondialog.ui
+    connectiondialog.ui \
+    createobject.ui
 
 unix:!macx: LIBS += -lBox2D -lsfml-graphics -lsfml-window

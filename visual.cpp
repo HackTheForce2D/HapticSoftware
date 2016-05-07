@@ -5,6 +5,7 @@ Visual::Visual(QWidget* Parent) :
     QSfmlCanvas(Parent)
 {
     physics = nullptr;
+    setMouseTracking(true);
 }
 
 void Visual::OnUpdate()
@@ -63,11 +64,45 @@ void Visual::defineTransform(QSize windowSize)
 
 }
 
+void Visual::mousePressEvent(QMouseEvent *event)
+{
+    sf::Vector2f clickedPos(event->localPos().x(),event->localPos().y());
+    std::cout << clickedPos.x << " " << clickedPos.y << std::endl;
+    clickedPos = physics2graphics.getInverse().transformPoint(clickedPos);
+    size_t bodyCount = physics->getBodyCount();
+    std::cout << clickedPos.x << " " << clickedPos.y << std::endl;
+    for(size_t i(0);i< bodyCount;i++)
+    {
+        if(physics->getBody(i).contains(clickedPos))
+        {
+            emit bodyClicked(i);
+        }
+        std::cout << physics->getBody(i).contains(clickedPos) << std::endl;
+    }
+
+
+}
+
+void Visual::mouseMoveEvent(QMouseEvent * event)
+{
+    //std::cout << event->screenPos().x() << event->screenPos().y()<< std::endl;
+}
+
 void Visual::resizeEvent(QResizeEvent *event)
 {
     sf::RenderWindow::setSize(sf::Vector2u(event->size().width(),event->size().height()));
     setSize(sf::Vector2u(event->size().width(),event->size().height()));
     defineTransform(event->size());
+}
+
+void Visual::startCreationMode()
+{
+    creationMode = true;
+}
+
+void Visual::endCreationMode()
+{
+    creationMode = false;
 }
 
 void Visual::setPhysics(Physics *newPhysics)

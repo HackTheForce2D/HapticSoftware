@@ -30,44 +30,40 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="buttonEditObject">
-          <property name="text">
-           <string>Edit</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="buttonDelObject">
           <property name="text">
            <string>Delete</string>
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="deleteAllButton">
+          <property name="text">
+           <string>Delete all</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="2">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Damping</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Frequency</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
-        </item>
-       </layout>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox">
+        <property name="text">
+         <string>Use mouse</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonRun">

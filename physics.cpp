@@ -27,12 +27,15 @@ void Physics::createSolidWall(b2Vec2 position, float rotation,
     wallBody->CreateFixture(&wallFixtureDef);
     wall.addNode(wallBody);
     wall.finish();
+    wall.setName("Wall");
+    wall.setWallPosition(rotation*180/pi);
     if(isWorkspace)
     {
         workspaceWalls.append(wall);
     }else
     {
         bodyList.append(wall);
+        emit objectListUpdated(bodyList);
     }
 }
 
@@ -103,9 +106,10 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                            ball.getNode(1)->GetWorldCenter());
     world->CreateJoint(&nodeLinkDef);
     ball.finish();
+    ball.setName("Ball");
     ball.setTransform(physics2graphics);
     bodyList.append(ball);
-    std::cout << bodyList.size() << std::endl;
+    emit objectListUpdated(bodyList);
 }
 /*
 void Physics::createPlane(b2Vec2 position, float stiffness,
@@ -140,6 +144,7 @@ void Physics::createEffector(float radius)
      createBall(b2Vec2(0,5),2,35.f,0.5f,1,0.4);
      createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
      createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2));
+     createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2));
      //createBall(b2Vec2(5,0),2,50.f,0.8f,2,0.4);
      //createBall(b2Vec2(0,0),2,50.f,0.8f,2,0.4);
      //createBall(b2Vec2(-5,0),2,50.f,0.8f,2,0.4);
@@ -159,6 +164,15 @@ void Physics::createEffector(float radius)
 Body Physics::getBody(int index)
 {
     return bodyList[index];
+}
+
+void Physics::selectBody(int index)
+{
+    for(int i(0);i<getBodyCount();i++)
+    {
+        if(index == i) bodyList[i].setSelected(true);
+        else bodyList[i].setSelected(false);
+    }
 }
 
 int Physics::getWorkspWallCount()
@@ -203,18 +217,16 @@ void Physics::addBall() //TEMP
     createBall(b2Vec2(0,0),2,35.f,0.5f,1,0.4);
 }
 
-void Physics::deleteBody()
+void Physics::deleteBody(int index)
 {
     stopSim();
-    int INDEX = 0;
-   // b2Body *toBeDestroyed = bodyList[INDEX].getNode(0);
-    //world->DestroyBody(toBeDestroyed);
-    if(bodyList.size()>INDEX)
+    if(bodyList.size() > index)
     {
-        bodyList[INDEX].destroyNodes();
-        bodyList.removeAt(INDEX);
+        bodyList[index].destroyNodes();
+        bodyList.removeAt(index);
     }
     std::cout <<  bodyList.size() << " bodies left"<< std::endl;
+    emit objectListUpdated(bodyList);
     startSim();
 }
 
@@ -247,12 +259,11 @@ void Physics::stopSim()
 
 void Physics::reset()
 {
-    bodyList.clear();
-    world = new b2World(gravity);
-    createEntities();
-}
-
-QList<Body> * Physics::getObjects()
-{
-    return &bodyList;
+    size_t nbBodies = getBodyCount();
+    std::cout << nbBodies << std::endl;
+    //delete bodies from last to first
+    for(size_t i(0); i <nbBodies;i++)
+    {
+        deleteBody(nbBodies-i-1);
+    }
 }
