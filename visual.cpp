@@ -6,6 +6,7 @@ Visual::Visual(QWidget* Parent) :
 {
     physics = nullptr;
     setMouseTracking(true);
+    radius = 2;
 }
 
 void Visual::OnUpdate()
@@ -33,13 +34,11 @@ void Visual::OnUpdate()
             draw(physics->getBody(i));
         }
         draw(physics->getEffector());
+        if(creationMode)
+        {
+            draw(newBall);
+        }
     }
-    //polygon[0].position = physics2graphics.transformPoint(sf::Vector2f(0,0));
-    //polygon[1].position = physics2graphics.transformPoint(sf::Vector2f(-16,-10));
-    //polygon[2].position = physics2graphics.transformPoint(sf::Vector2f(16,10));
-    //polygon[3].position = sf::Vector2f(1,1);
-   // draw(polygon);
-
 }
 
 void Visual::OnInit()
@@ -66,26 +65,43 @@ void Visual::defineTransform(QSize windowSize)
 
 void Visual::mousePressEvent(QMouseEvent *event)
 {
+
     sf::Vector2f clickedPos(event->localPos().x(),event->localPos().y());
     std::cout << clickedPos.x << " " << clickedPos.y << std::endl;
     clickedPos = physics2graphics.getInverse().transformPoint(clickedPos);
-    size_t bodyCount = physics->getBodyCount();
-    std::cout << clickedPos.x << " " << clickedPos.y << std::endl;
-    for(size_t i(0);i< bodyCount;i++)
-    {
-        if(physics->getBody(i).contains(clickedPos))
-        {
-            emit bodyClicked(i);
-        }
-        std::cout << physics->getBody(i).contains(clickedPos) << std::endl;
+    if(creationMode){
+        emit createNewBody(b2Vec2(clickedPos.x,clickedPos.y),radius);
     }
-
+    else
+    {
+        size_t bodyCount = physics->getBodyCount();
+        std::cout << clickedPos.x << " " << clickedPos.y << std::endl;
+        int bodyIndex(-1);
+        for(size_t i(0);i< bodyCount;i++)
+        {
+            if(physics->getBody(i).contains(clickedPos))
+            {
+                bodyIndex = i;
+            }
+           // std::cout << physics->getBody(i).contains(clickedPos) << std::endl;
+        }
+        emit bodyClicked(bodyIndex);
+    }
 
 }
 
 void Visual::mouseMoveEvent(QMouseEvent * event)
 {
     //std::cout << event->screenPos().x() << event->screenPos().y()<< std::endl;
+    if(creationMode)
+    {
+        newBall.setPosition(sf::Vector2f(event->localPos().x(),event->localPos().y()));
+    }
+}
+
+void Visual::keyPressEvent(QKeyEvent * event)
+{
+    //event->key();
 }
 
 void Visual::resizeEvent(QResizeEvent *event)
@@ -95,9 +111,24 @@ void Visual::resizeEvent(QResizeEvent *event)
     defineTransform(event->size());
 }
 
+void Visual::wheelEvent(QWheelEvent *event)
+{
+    std::cout << event->delta() << std::endl;
+    if(creationMode)
+    {
+        radius +=((float)(event->delta())/1200);
+        if(radius > 4) radius = 4;
+        else if (radius < 1) radius = 1;
+        newBall.setRadius(radius*(this->size().width()/36));
+        newBall.setOrigin(sf::Vector2f(newBall.getRadius(),newBall.getRadius()));
+    }
+}
+
 void Visual::startCreationMode()
 {
     creationMode = true;
+    newBall.setRadius(radius*(this->size().width()/36));
+    newBall.setOrigin(sf::Vector2f(newBall.getRadius(),newBall.getRadius()));
 }
 
 void Visual::endCreationMode()

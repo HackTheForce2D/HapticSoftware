@@ -21,6 +21,7 @@ public slots:
 
 signals:
     void bodyClicked(int index);
+    void createNewBody(b2Vec2 position, float radius);
 
 private:
     Physics *physics;
@@ -29,12 +30,15 @@ private:
     sf::RectangleShape newWall;
     sf::Transform physics2graphics;
     bool creationMode;
+    float radius;
     void defineTransform(QSize windowSize);
     void getObjectLocations();
     QVector2D convertCoordinates();
     void resizeEvent(QResizeEvent * event);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent * event);
+    void keyPressEvent(QKeyEvent * event);
+    void wheelEvent(QWheelEvent *event);
     void OnInit();
     void OnUpdate();
 };

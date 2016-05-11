@@ -17,6 +17,18 @@ public:
 
 signals:
     void endCreationMode();
+    void densityChanged(float density);
+    void stiffnessChanged(float stiffness);
+    void dampingChanged(float damping);
+
+private slots:
+    void on_doubleSpinBox_valueChanged(double arg1);
+
+    void on_doubleSpinBox_2_valueChanged(double arg1);
+
+    void on_doubleSpinBox_3_valueChanged(double arg1);
+
+    void on_buttonClose_clicked();
 
 private:
     Ui::CreateObject *ui;

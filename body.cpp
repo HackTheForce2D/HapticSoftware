@@ -5,6 +5,7 @@ Body::Body()
 {
     id = rand()*rand();
     name = "object";
+    isSelected = false;
 }
 
 long int Body::getId() const

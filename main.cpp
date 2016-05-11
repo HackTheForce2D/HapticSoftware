@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     Visual * display =  w.findChild<Visual*>(QString("display"));
     QPushButton * buttonRun = w.findChild<QPushButton*>(QString("buttonRun"));
     QPushButton * buttonStop = w.findChild<QPushButton*>(QString("buttonStop"));
-    QPushButton * buttonDelObject = w.findChild<QPushButton*>(QString("buttonDelObject"));
+    //QPushButton * buttonDelObject = w.findChild<QPushButton*>(QString("buttonDelObject"));
     QPushButton * buttonAddObject = w.findChild<QPushButton*>(QString("buttonAddObject"));
     //QListView * objectList = w.findChild<QListView*>(QString("objectList"));
 
@@ -57,6 +57,8 @@ int main(int argc, char *argv[])
                      &createObjectDialog,SLOT(show()));
     QObject::connect(&w, SIGNAL(createObject()),
                      display,SLOT(startCreationMode()));
+    QObject::connect(&w,SIGNAL(deleteAll()), //replace this signal
+                     display, SLOT(endCreationMode()));
     QObject::connect(display,SIGNAL(bodyClicked(int)),
                      &w,SLOT(bodyclicked(int)));
     QObject::connect(display,SIGNAL(bodyClicked(int)),
@@ -70,8 +72,22 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QList<Body>>("QList<Body>");
     QObject::connect(&physics,SIGNAL(objectListUpdated(QList<Body>)),
                       &w, SLOT(updateListView(QList<Body>)));
-    QObject::connect(buttonAddObject,SIGNAL(clicked()),
-                     &physics,SLOT(addBall()));
+    //QObject::connect(buttonAddObject,SIGNAL(clicked()),
+     //                &physics,SLOT(addBall()));
+    qRegisterMetaType<b2Vec2>("b2Vec2");
+    QObject::connect(&createObjectDialog,SIGNAL(densityChanged(float)),
+                     &physics,SLOT(setDensity(float)));
+    QObject::connect(&createObjectDialog,SIGNAL(stiffnessChanged(float)),
+                     &physics,SLOT(setStiffness(float)));
+    QObject::connect(&createObjectDialog,SIGNAL(dampingChanged(float)),
+                     &physics,SLOT(setDamping(float)));
+    QObject::connect(&createObjectDialog,SIGNAL(endCreationMode()),
+                     display,SLOT(endCreationMode()));
+    QObject::connect(display,SIGNAL(createNewBody(b2Vec2,float)),
+                     &physics,SLOT(createBall(b2Vec2,float)));
+
+
+
 
 
     //pantograph.connectToHost("localhost",53200);
