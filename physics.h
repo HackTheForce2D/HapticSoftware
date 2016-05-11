@@ -40,6 +40,11 @@ public slots:
     void selectBody(int);
     void deleteBody(int index);
     void addBall(); //temporary
+    void setDensity(float newDensity);
+    void setStiffness(float newStiffness);
+    void setDamping(float newDamping);
+    void createBall(b2Vec2 position, float radius);
+
 
 signals:
     void worldCreated();
@@ -54,6 +59,7 @@ private:
     b2Vec2 gravity;
     b2World* world;
     QTimer *timer;
+    float density,stiffness,damping;
     HapticInterface *hapticDevice;
     sf::Transform physics2graphics;
     QList<Body> workspaceWalls;

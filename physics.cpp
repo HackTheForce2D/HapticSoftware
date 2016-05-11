@@ -8,6 +8,9 @@ world = new b2World(gravity);
 velocityIterations = 6;
 positionIterations = 2;
 timeStep = 0.001f;
+density = 1;
+damping = .5;
+stiffness = 10;
 timer = new QTimer(this);
 }
 
@@ -111,12 +114,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
     bodyList.append(ball);
     emit objectListUpdated(bodyList);
 }
-/*
-void Physics::createPlane(b2Vec2 position, float stiffness,
-                          float damping, float density, float maxSpacing)
-{
-}
-*/
+
 
 void Physics::createEffector(float radius)
 {
@@ -189,6 +187,26 @@ Effector Physics::getEffector()
     return effector;
 }
 
+void Physics::setDensity(float newDensity)
+{
+    density = newDensity;
+}
+
+void Physics::setStiffness(float newStiffness)
+{
+    stiffness = newStiffness;
+}
+
+void Physics::setDamping(float newDamping)
+{
+    damping = newDamping;
+}
+
+void Physics::createBall(b2Vec2 position, float radius)
+{
+    createBall(position,radius,stiffness,damping,density,0.4);
+}
+
 void Physics::setTransform(sf::Transform t)
 {
     physics2graphics = t;
@@ -220,7 +238,7 @@ void Physics::addBall() //TEMP
 void Physics::deleteBody(int index)
 {
     stopSim();
-    if(bodyList.size() > index)
+    if(bodyList.size() > index && index >= 0)
     {
         bodyList[index].destroyNodes();
         bodyList.removeAt(index);
@@ -245,6 +263,7 @@ void Physics::step()
 
 void Physics::run(){
 connect(timer, SIGNAL(timeout()), this, SLOT(step()));
+emit objectListUpdated(bodyList);
 exec();
 }
 

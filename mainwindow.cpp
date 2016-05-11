@@ -54,18 +54,27 @@ void MainWindow::on_deleteAllButton_clicked()
 void MainWindow::on_objectList_clicked(const QModelIndex &index)
 {
     indexSelected = index.row();
+    std::cout << "Index Selected : " << indexSelected << std::endl;
     emit selectedObject(indexSelected);
 }
 
 void MainWindow::on_buttonDelObject_clicked()
 {
-    deleteAt(indexSelected);
+    std::cout << "Index Selected : " << indexSelected << std::endl;
+    emit deleteAt(indexSelected);
 }
 
 void MainWindow::bodyclicked(int bodyIndex)
 {
+    indexSelected = bodyIndex;
     QListView * objectList = findChild<QListView*>(QString("objectList"));
-    QModelIndex qIndex = objectListSource->index(bodyIndex);
-    objectList->setCurrentIndex(qIndex);
-
+    if(indexSelected == -1) //used clicked on empty space
+    {
+        objectList->clearSelection();
+    }
+    else
+    {
+       QModelIndex qIndex = objectListSource->index(indexSelected);
+       objectList->setCurrentIndex(qIndex);
+    }
 }

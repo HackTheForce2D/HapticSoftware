@@ -84,8 +84,8 @@ void HapticInterface::updateJacobian()
 
 void HapticInterface::updateTorque()
 {
-     torque.setX(J(0,0)*force.x() + J(1,0)*force.y());
-     torque.setY(J(0,1)*force.x() + J(1,1)*force.y());
+     torque.setX(-J(0,0)*force.x() + J(1,0)*force.y());
+     torque.setY(-J(0,1)*force.x() + J(1,1)*force.y());
      if(abs(torque.x()) > 500 || abs(torque.y()) > 500)
      {
          torque = 500*(torque/(std::max(abs(torque.x()),abs(torque.y()))));
@@ -104,10 +104,10 @@ void HapticInterface::encodeData()
    int16_t encodedValue;
    data.clear();
    //originalValue = force.x();
-   encodedValue = (int16_t)(force.x()+500);
+   encodedValue = (int16_t)(torque.x()+500);
    data.append((uchar)((encodedValue>>8)&255));
    data.append((uchar)((encodedValue)&255));
-   encodedValue = (int16_t)(force.y()+500);
+   encodedValue = (int16_t)(torque.y()+500);
    data.append((uchar)((encodedValue>>8)&255));
    data.append((uchar)((encodedValue)&255));
    //
