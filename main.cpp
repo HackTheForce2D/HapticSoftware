@@ -38,13 +38,19 @@ int main(int argc, char *argv[])
        //     insertRows(rowCount(), 1);
     //setData(index(rowCount()-1), string);
 
+    //Set up signals exchanged between the classes
+
+    // Send force from the physics simulation to the Ethernet interface
     QObject::connect(&physics,SIGNAL(forceUpdated(QVector2D)),
                      &pantograph,SLOT(setForce(QVector2D)));
 
+    // Pause and resume simulation with the main window buttons
     QObject::connect(buttonRun,SIGNAL(clicked()),
                      &physics,SLOT(startSim()));
     QObject::connect(buttonStop,SIGNAL(clicked()),
                      &physics,SLOT(stopSim()));
+
+    //
     QObject::connect(&w, SIGNAL(deleteAt(int)),
                      &physics,SLOT(deleteBody(int)));
     QObject::connect(&w, SIGNAL(deleteAll()),
@@ -86,11 +92,6 @@ int main(int argc, char *argv[])
     QObject::connect(display,SIGNAL(createNewBody(b2Vec2,float)),
                      &physics,SLOT(createBall(b2Vec2,float)));
 
-
-
-
-
-    //pantograph.connectToHost("localhost",53200);
 
     //Launch communication thread
     pantograph.moveToThread(&pantograph);

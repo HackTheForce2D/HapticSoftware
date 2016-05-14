@@ -1,7 +1,10 @@
 #include "qsfmlcanvas.h"
 
+// Function adapted from SFML documentation
+// More information on http://www.sfml-dev.org/tutorials/1.6/graphics-qt.php
+
 QSfmlCanvas::QSfmlCanvas(QWidget* Parent, unsigned int FrameTime) :
-QWidget       (Parent), //sf::RenderWindow(sf::VideoMode(100, 100),"Haptics",sf::Style::Resize),//FIX
+QWidget       (Parent),
 myInitialized (false)
 {
     // Setup some states to allow direct rendering into the widget

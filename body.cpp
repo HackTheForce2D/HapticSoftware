@@ -1,6 +1,12 @@
 #include "body.h"
 #include<iostream>
 
+/* Class that represents a physical body in the Box2D simulation as well as
+ * its graphical representation.
+ * Needs to be refactored to include the creation of the object
+ * (to lighten the Physics class and improve encapsulation) and also needs to
+ * be split into a few subclasses for the various types of objects
+*/
 Body::Body()
 {
     id = rand()*rand();
@@ -8,6 +14,8 @@ Body::Body()
     isSelected = false;
 }
 
+// Id allows two Body instances to be compared
+// needed for the delete operation
 long int Body::getId() const
 {
     return id;
@@ -18,31 +26,39 @@ void Body::setType(int type)
     bodyType = type;
 }
 
+// Names of the objects are displayed in the objectList widget
 QString Body::getName() const
 {
     return name;
 }
+
 void Body::setName(QString newName)
 {
     name = newName;
 }
 
+// If an object is selected, it's painted in a different color
 void Body::setSelected(bool selected)
 {
     isSelected = selected;
 }
 
+// Radius of the small rigid object that compose an elastic object
+// We use it to correct the shape of the drawable so we don't have
+// empty space between objects that are touching
 void Body::setNodeRadius(float newNodeRadius)
 {
     nodeRadius = newNodeRadius;
 }
 
+// Set the transform that converts Box2D coordinates to graphical
+// display coordinates
 void Body::setTransform(sf::Transform transform)
 {
     physics2graphics = transform;
 }
 
-//define drawable object once all vertices are entered
+//define drawable object once all vertices are entered, based on object type
 void Body::finish()
 {
     int nodeCount = nodeList.size();
@@ -57,29 +73,34 @@ void Body::finish()
     }
 }
 
+// function that gets called when the display draws the Body instance
 void Body::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+    // No textures defined currently
     //states.texture = &m_texture;
+    // Transform
     states.transform *= physics2graphics;
     target.draw(vertices, states);
 }
 
+// Update the position of the graphical object to match that of the physical
+// object. Only gets called at the display rate (60Hz) rather than the Box2D
+// simulation rate (1000Hz) to save resources
 void Body::updatePosition()
 {
     int nodeCount = nodeList.size();
+    // If the object is deformable, we need to update each node
     if(bodyType == BALL || bodyType == PLANE){
         sf::Vector2f p0 = convertPosition(nodeList[0]->GetPosition());
+        // Change the color of the central node if the object is selected
         if(isSelected) vertices[0].color = sf::Color::Green;
         else vertices[0].color = sf::Color::White;
-       // vertices[0].position = physics2graphics.transformPoint(p0);
         vertices[0].position = p0;
         for(int i(1);i<nodeCount;i++)
         {
             sf::Vector2f p = convertPosition(nodeList[i]->GetPosition());
-            //float norm = sqrt(p.x*p0.x + p.y*p0.y); //account for node radius
             float norm = sqrt((p.x-p0.x)*(p.x-p0.x) + (p.y-p0.y)*(p.y-p0.y)); //account for node radius
             p = (p - p0)*(norm+nodeRadius)/norm + p0;
-            //vertices[i].position = physics2graphics.transformPoint(p);
             vertices[i].position = p;
             vertices[i].color = sf::Color::Blue;
         }
@@ -127,15 +148,18 @@ b2Body* Body::getNode(int index)
     return nodeList[index];
 }
 
+// Turn aBox2D vector into an SFML vector
 sf::Vector2f Body::convertPosition(b2Vec2 v)
 {
     return sf::Vector2f(v.x,v.y);
 }
 
+// Overload the == operation  (needed for the delete operation)
 bool Body::operator==(const Body& rhs)
 {
     return(getId() == rhs.getId());
 }
+
 
 void Body::destroyNodes()
 {
@@ -147,6 +171,7 @@ void Body::destroyNodes()
         }
 }
 
+// Return true if given position is within the Body's bounding box
 bool Body::contains(sf::Vector2f position)
 {
     return vertices.getBounds().contains(position);
