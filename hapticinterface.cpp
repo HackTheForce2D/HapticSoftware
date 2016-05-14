@@ -23,7 +23,6 @@ HapticInterface::HapticInterface(QObject *parent) : QThread(parent)
 
 void HapticInterface::setForce(QVector2D newForce)
 {
-    //std::cout << "updating force" << std::endl;
     force = newForce;
     updateTorque();
 }
@@ -45,20 +44,17 @@ bool HapticInterface::connectToHost(QString host,int port)
     return device->waitForConnected();
 }
 
+// Haptic system's direct geometric model
 void HapticInterface::angle2position()
 {
     float OAB((float)angle.x()),OED((float)angle.y());
-    //std::cout << (OAB*180/pi) << " " << (OED*180/pi) << std::endl;
     B = A+QVector2D(b*cos(OAB),b*sin(OAB));
     D = E+QVector2D(b*cos(OED),b*sin(OED));
-    //std::cout <<"D : "<< D.x() << " " << D.y() << std::endl;
     float BD((B-D).length());
-    //std::cout <<"BD : "<< BD << std::endl;
     float BCD(acos(-(BD*BD-c*c - c*c)/(2*c*c)));
     float DBC(asin(c*sin(BCD)/BD));
     float thetaB(DBC + (float)atan((D.y()-B.y())/(D.x()-B.x())));
     C = B + QVector2D(c*cos(thetaB),c*sin(thetaB));
-    //std::cout <<"C : "<< C.x() << " " << C.y() << std::endl;
     if(position != C) updateJacobian();
     position = C;
 }
@@ -68,6 +64,8 @@ QVector2D force2torque();
 void decodeData();
 int receiveData();
 */
+
+// Haptic system's direct kinematic model (Jacobian matrix)
 void HapticInterface::updateJacobian()
 {
     float denominator((C.y()-D.y())*(C.x()-B.x())-(C.x()-D.x())*(C.y()-B.y()));
@@ -119,7 +117,7 @@ bool HapticInterface::sendData()
     {
         encodeData();
         //no need to write the size of the data because it's fixed (4 bytes)
-        //so we just write the data itself
+        //so we just write the data itself to save time
         device->write(data);
         return device->waitForBytesWritten();
     }
@@ -148,9 +146,9 @@ void HapticInterface::readData()
      while(device->bytesAvailable() > 0)
      {
          size_t bytesAvailable(device->bytesAvailable());
-         // if more than 8 bytes are available, store them in buffer
+         // If more than 8 bytes are available, store them in the buffer
          // and then take only the last 8 bytes to dataIn
-         // to ignore old information
+         // to ignore outdated information
          if(bytesAvailable!= 8){
              device->read(buffer,device->bytesAvailable());
              for(int i(0);i<8;i++)
@@ -168,21 +166,25 @@ void HapticInterface::readData()
      }
  }
 
-
+// Recover the angle measurements from the bytes array received
 void HapticInterface::decodeData()
  {
      uint rawValue;
      qreal decodedValue;
+     // Left bar angle is in <data[0] | data[1]> (12 out of 16 bits used)
      rawValue = (uchar)dataIn[0];
      rawValue = rawValue << 8 | (uchar)dataIn[1];
      decodedValue = ((qreal)rawValue)*2*pi/4096;
      if(decodedValue > pi) decodedValue -= 2*pi;
      angle.setX(decodedValue);
+     // Right bar angle is in <data[2] | data[3]> (12 out of 16 bits used)
      rawValue = (uchar)dataIn[2];
      rawValue = rawValue << 8 | (uchar)dataIn[3];
      decodedValue = ((qreal)rawValue)*2*pi/4096;
      if(decodedValue > pi) decodedValue -= 2*pi;
      angle.setY(decodedValue);
+     // Angular velocity is currently not measured nor taken into account
+     // We should received 0 all the time
      rawValue = dataIn[4];
      rawValue = rawValue << 8 | dataIn[5];
      angularVelocity.setX(((qreal)rawValue)*2*pi/4096);

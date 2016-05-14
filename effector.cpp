@@ -11,20 +11,28 @@ Effector::Effector()
 
 }
 
+// Transform the coordinates from the real prototype workspace
+// to the virtual Box2D workspace
 void Effector::setTransformHaptic(sf::Transform transform)
 {
     device2physics = transform;
 }
 
+// Transform the coordinates from the Box2D simulation to
+// pixel coordinates of the graphical display
 void Effector::setTransform(sf::Transform transform)
 {
     physics2graphics = transform;
 }
 
+// Assign a b2Body to follow the user's movements
+// object is defined as a sphere (no option for the moment)
 void Effector::setPhysical(b2Body * effectorPhysical)
 {
     physical = effectorPhysical;
 }
+
+// set
 void Effector::setRadius(float newRadius)
 {
     radius = newRadius;
