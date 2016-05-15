@@ -2,6 +2,7 @@
 #define HAPTICINTERFACE_H
 
 #include<QVector2D>
+#include <pantograph.h>
 #include<QMatrix2x2>
 #include<QtNetwork>
 #include<QHostAddress>
