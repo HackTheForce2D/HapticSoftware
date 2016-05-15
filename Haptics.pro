@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     body.cpp \
     effector.cpp \
     connectiondialog.cpp \
-    createobject.cpp
+    createobject.cpp \
+    pantograph.cpp
 
 HEADERS  += mainwindow.h \
     physics.h \
@@ -33,7 +34,8 @@ HEADERS  += mainwindow.h \
     body.h \
     effector.h \
     connectiondialog.h \
-    createobject.h
+    createobject.h \
+    pantograph.h
 
 FORMS    += mainwindow.ui \
     connectiondialog.ui \

@@ -8,6 +8,13 @@
 
 //Q_DECLARE_METATYPE(QList<Body>)
 
+float testOptim(QVector<float> x)
+{
+    return (x[0]-1)*(x[0]-1)+
+           (x[1]-4)*(x[1]-4)+
+           (x[2]-5)*(x[2]-5);
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -91,6 +98,13 @@ int main(int argc, char *argv[])
                      display,SLOT(endCreationMode()));
     QObject::connect(display,SIGNAL(createNewBody(b2Vec2,float)),
                      &physics,SLOT(createBall(b2Vec2,float)));
+
+    Pantograph pTest;
+    QVector<float> xStartTest(3,0);
+    xStartTest[0] = 1;
+    xStartTest[1] = 4;
+    xStartTest[2] = 5;
+    pTest.nelderMead(testOptim,xStartTest);
 
 
     //Launch communication thread
