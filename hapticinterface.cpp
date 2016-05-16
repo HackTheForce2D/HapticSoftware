@@ -24,7 +24,7 @@ HapticInterface::HapticInterface(QObject *parent) : QThread(parent)
 void HapticInterface::setForce(QVector2D newForce)
 {
     force = newForce;
-    updateTorque();
+    //updateTorque();
 }
 
 QVector2D HapticInterface::getPosition()
@@ -44,7 +44,18 @@ bool HapticInterface::connectToHost(QString host,int port)
     return device->waitForConnected();
 }
 
+void HapticInterface::sendCalibrationAngle(int index)
+{
+    emit calibrationAngle(index, encoderReading);
+    pantograph.setCalibAngle(index,encoderReading);
+    if(index == 3)
+    {
+        pantograph.calibrate();
+    }
+}
+
 // Haptic system's direct geometric model
+// To be removed and replace with a call to the Pantograph class
 void HapticInterface::angle2position()
 {
     float OAB((float)angle.x()),OED((float)angle.y());
@@ -57,6 +68,7 @@ void HapticInterface::angle2position()
     C = B + QVector2D(c*cos(thetaB),c*sin(thetaB));
     if(position != C) updateJacobian();
     position = C;
+   // std::cout << "user at : " << position.x() << "," << position.y() << std::endl;
 }
 /*
 QVector2D force2torque();
@@ -100,8 +112,10 @@ void HapticInterface::encodeData()
    //Encode each component of the force as a 10-bit number
    //float originalValue;
    int16_t encodedValue;
+   torque = pantograph.calculateTorque(force);
    data.clear();
    //originalValue = force.x();
+   torque = pantograph.calculateTorque(force);
    encodedValue = (int16_t)(torque.x()+500);
    data.append((uchar)((encodedValue>>8)&255));
    data.append((uchar)((encodedValue)&255));
@@ -174,12 +188,14 @@ void HapticInterface::decodeData()
      // Left bar angle is in <data[0] | data[1]> (12 out of 16 bits used)
      rawValue = (uchar)dataIn[0];
      rawValue = rawValue << 8 | (uchar)dataIn[1];
+     encoderReading.setX(rawValue);
      decodedValue = ((qreal)rawValue)*2*pi/4096;
      if(decodedValue > pi) decodedValue -= 2*pi;
      angle.setX(decodedValue);
      // Right bar angle is in <data[2] | data[3]> (12 out of 16 bits used)
      rawValue = (uchar)dataIn[2];
      rawValue = rawValue << 8 | (uchar)dataIn[3];
+     encoderReading.setY(rawValue);
      decodedValue = ((qreal)rawValue)*2*pi/4096;
      if(decodedValue > pi) decodedValue -= 2*pi;
      angle.setY(decodedValue);
@@ -191,7 +207,8 @@ void HapticInterface::decodeData()
      rawValue = data[6];
      rawValue = rawValue << 8 | dataIn[7];
      angularVelocity.setY(((qreal)rawValue)*2*pi/4096);
-     angle2position();
+     position = pantograph.geometricModel(encoderReading);
+     //angle2position();
      //std::cout << (angle.x()*180/pi) << " " << (angle.y()*180/pi) << std::endl;
      //std::cout << position.x() << " " << position.y()<< std::endl;
  }

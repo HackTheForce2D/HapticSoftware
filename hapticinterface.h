@@ -1,12 +1,12 @@
 #ifndef HAPTICINTERFACE_H
 #define HAPTICINTERFACE_H
 
-#include<QVector2D>
+#include <QVector2D>
 #include <pantograph.h>
-#include<QMatrix2x2>
-#include<QtNetwork>
-#include<QHostAddress>
-#include<vector>
+#include <QMatrix2x2>
+#include <QtNetwork>
+#include <QHostAddress>
+#include <vector>
 #include <cmath>
 
 const double pi = 3.1415926535897;
@@ -28,17 +28,21 @@ public slots:
     void disconnect();
     void reportConnected();
     void reportDisconnected();
+    void sendCalibrationAngle(int index);
 
 signals:
     void connected();
     void disconnected();
+    void calibrationAngle(int index, QVector2D angles);
 
 private:
+    QVector2D encoderReading;
     QVector2D angle,angularVelocity,position,velocity;
     QVector2D force,torque;
     QVector2D A,B,C,D,E;
     QMatrix2x2 J;
     float a,b,c;
+    Pantograph pantograph;
 
     QByteArray data;
     char dataIn[8],dataOut[4],buffer[8000];

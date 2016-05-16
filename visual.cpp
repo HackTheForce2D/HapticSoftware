@@ -1,21 +1,38 @@
 #include "visual.h"
 #include <iostream>
 
+// Workspace corners in pixels
+// Not finished - maybe shouldn't set as constant
+const QVector2D Visual::TOP_LEFT = QVector2D(10,10);
+const QVector2D Visual::BOTTOM_RIGHT = QVector2D(300,480);
+
 Visual::Visual(QWidget* Parent) :
     QSfmlCanvas(Parent)
 {
     physics = nullptr;
     setMouseTracking(true);
     radius = 2;
+    calibrationPoint = -1;
+    calibrationTarget.setFillColor(sf::Color::Red);
+    calibrationTarget.setRadius(5);
+    calibrationTarget.setOrigin(sf::Vector2f(5,5));
+    workspaceBounds = sf::VertexArray(sf::LinesStrip,5);
+    defineTransform(size());
 }
 
 void Visual::OnUpdate()
 {
     // Erase previous frame
     clear();
+    draw(workspaceBounds);
+    // Draw the calibration target if in calibration mode
+    if(calibrationPoint != -1)
+    {
+        draw(calibrationTarget);
+    }
     // Draw the physical bodies' graphical representations
     // Test if simulation is already launched to avoid segmentation fault
-    if(physics != nullptr)
+    else if(physics != nullptr)
     {
         // Update graphical position to match Box2D position
         physics->updateBodies();
@@ -54,13 +71,44 @@ void Visual::OnInit()
 // (not working properly because SFML's setSize() function is unresponsive
 void Visual::defineTransform(QSize windowSize)
 {
+    topLeft = sf::Vector2f(10,10);
+    bottomRight = sf::Vector2f(windowSize.width()-10,windowSize.height()-10);
+    workspaceBounds[0].position = sf::Vector2f(topLeft.x,topLeft.y);
+    workspaceBounds[1].position = sf::Vector2f(topLeft.x,bottomRight.y);
+    workspaceBounds[2].position = sf::Vector2f(bottomRight.x,
+                                               bottomRight.y);
+    workspaceBounds[3].position = sf::Vector2f(bottomRight.x,topLeft.y);
+    workspaceBounds[4].position = workspaceBounds[0].position;
+
     // Reset previous transform by setting it to the identity
     physics2graphics = physics2graphics.Identity;
     // Transform based on hardcoded workspace dimensions - to be improved later
     sf::Vector2f center(windowSize.width()/2,windowSize.height()/2);
     sf::Vector2f scale(windowSize.width()/36,-windowSize.height()/22);
+    sf::Vector2f centerPhysics = sf::Vector2f((Physics::TOP_LEFT.x +
+                                               Physics::BOTTOM_RIGHT.x)/2,
+                                               (Physics::TOP_LEFT.y +
+                                               Physics::BOTTOM_RIGHT.y)/2);
+    sf::Vector2f centerVisual = sf::Vector2f((topLeft.x +
+                                              bottomRight.x)/2,
+                                             (topLeft.y +
+                                              bottomRight.y)/2);
+    center = centerVisual - centerPhysics;
+    scale.x = (topLeft.x - centerVisual.x)/
+              (Physics::TOP_LEFT.x - centerPhysics.x);
+    scale.y = (topLeft.y - centerVisual.y)/
+              (Physics::TOP_LEFT.y - centerPhysics.y);
     physics2graphics.translate(center);
     physics2graphics.scale(scale);
+
+    std::cout << "Translation : " << center.x << " " << center.y << std::endl;
+    std::cout << "Scale : " << scale.x << " " << scale.y << std::endl;
+    std::cout << "Center : " << centerPhysics.x << " " << centerPhysics.y << std::endl;
+    sf::Vector2f testPoint= physics2graphics.transformPoint(Physics::TOP_LEFT);
+    std::cout << "Transformed top left : " << testPoint.x << " " << testPoint.y << std::endl;
+    testPoint= physics2graphics.transformPoint(Physics::BOTTOM_RIGHT);
+    std::cout << "Transformed bottom right : " << testPoint.x << " " << testPoint.y << std::endl;
+
     // Assign the transform to the physical simulation to be transmitted to
     // each body. Check if simulation already launched to avoid segfault
     if(physics != nullptr) physics->setTransform(physics2graphics);
@@ -105,7 +153,12 @@ void Visual::mouseMoveEvent(QMouseEvent * event)
 
 void Visual::keyPressEvent(QKeyEvent * event)
 {
-    //event->key();
+    if(calibrationPoint != -1)
+    {
+        emit calibrationPointEntered(calibrationPoint);
+        nextCalibrationPoint();
+    }
+
 }
 
 void Visual::resizeEvent(QResizeEvent *event)
@@ -139,6 +192,29 @@ void Visual::startCreationMode()
 void Visual::endCreationMode()
 {
     creationMode = false;
+}
+
+void Visual::startCalibrationMode()
+{
+    calibrationPoint = 0;
+    physics->stopSim();
+    calibrationTarget.setPosition(workspaceBounds[calibrationPoint].position);
+}
+
+void Visual::nextCalibrationPoint()
+{
+    calibrationPoint++;
+    if(calibrationPoint < 4)
+    {
+        calibrationTarget.setPosition
+                (workspaceBounds[calibrationPoint].position);
+    }else endCalibrationMode();
+}
+
+void Visual::endCalibrationMode()
+{
+    calibrationPoint = -1;
+    emit calibrationFinished();
 }
 
 void Visual::setPhysics(Physics *newPhysics)

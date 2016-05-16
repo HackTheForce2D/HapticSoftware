@@ -37,6 +37,8 @@ private slots:
 
     void on_buttonDelObject_clicked();
 
+    void on_actionCalibrate_triggered();
+
 signals:
     //void displayResized(QSize newSize);
     void findDevice();
@@ -44,6 +46,7 @@ signals:
     void deleteAt(int index);
     void deleteAll();
     void selectedObject(int index);
+    void calibrationStarted();
 
 private:
     Ui::MainWindow *ui;

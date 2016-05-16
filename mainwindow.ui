@@ -118,6 +118,8 @@
      <string>Device</string>
     </property>
     <addaction name="actionConnect"/>
+    <addaction name="actionDisconnect"/>
+    <addaction name="actionCalibrate"/>
    </widget>
    <addaction name="menuDevice"/>
    <addaction name="menuSettings"/>
@@ -125,6 +127,16 @@
   <action name="actionConnect">
    <property name="text">
     <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="actionCalibrate">
+   <property name="text">
+    <string>Calibrate</string>
    </property>
   </action>
  </widget>
