@@ -6,6 +6,7 @@
 #include<QVector>
 #include<QVector2D>
 #include<body.h>
+//#include<physics.h>
 
 
 class Effector : public sf::Drawable

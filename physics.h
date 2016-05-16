@@ -17,6 +17,7 @@ class Physics : public QThread
     Q_OBJECT
 public:
     Physics();
+    static const sf::Vector2f TOP_LEFT, BOTTOM_RIGHT;
     void setTimeStep(double timeStep);
     void createEntities();
     void setStiffness(int bodyIndex, double frequence,double damping);
@@ -61,7 +62,7 @@ private:
     QTimer *timer;
     float density,stiffness,damping;
     HapticInterface *hapticDevice;
-    sf::Transform physics2graphics;
+    sf::Transform physics2graphics,device2physics;
     QList<Body> workspaceWalls;
     QList<Body> bodyList; //Model for the ListView
     Effector effector;

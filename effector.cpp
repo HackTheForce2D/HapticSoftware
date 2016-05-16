@@ -5,9 +5,19 @@ Effector::Effector()
 {
     graphical.setFillColor(sf::Color::Green);
     device2physics = device2physics.Identity;
-    device2physics.rotate(180,sf::Vector2f(0,0));
-    device2physics.translate(sf::Vector2f(0,-20));
-    device2physics.scale(sf::Vector2f(-.2,.2),sf::Vector2f(0,0));
+    //device2physics.rotate(180,sf::Vector2f(0,0));
+    //device2physics.translate(sf::Vector2f(0,-20));
+    //device2physics.scale(sf::Vector2f(-.2,.2),sf::Vector2f(0,0));
+    /*sf::Vector2f centerPhysics = (Physics::TOP_LEFT + Physics::BOTTOM_RIGHT)/2;
+    sf::Vector2f centerPantograph = (Pantograph::TOP_LEFT +
+                                     Physics::BOTTOM_RIGHT)/2;
+    device2physics.translate(centerPhysics - centerPantograph);
+    float xScale = (Physics::TOP_LEFT.x - centerPhysics.x)/
+            (Pantograph::TOP_LEFT.x - centerPantograph.x);
+    float xScale = (Physics::TOP_LEFT.y - centerPhysics.y)/
+            (Pantograph::TOP_LEFT.y - centerPantograph.y);
+    device2physics.scale(sf::Vector2f(xScale,yScale),
+                         centerPhysics - centerPantograph)*/
 
 }
 
@@ -62,13 +72,13 @@ QVector2D Effector::updateForce(QVector2D position)
 {
     sf::Vector2f positionSf(convertPosition(position));
     positionSf = device2physics.transformPoint(positionSf);
+    //std::cout << "virtual at : " << positionSf.x << "," << positionSf.y << std::endl;
     b2Vec2 positionb2(convertPosition(positionSf));
-    //std::cout << positionb2.x << " " << positionb2.y << std::endl;
-    //Proportional control
+    //Proportional control to make the physical object follow the user
     kp = 100;
     force = kp*(positionb2 - physical->GetPosition());
     physical->ApplyForce(force,physical->GetWorldCenter(),true);
-    //return the reaction to the force as a QVector2D
+    //return the reaction to the applied force as a QVector2D
     //to be used by the interface with the device
     return (QVector2D(-force.x,-force.y));
 

@@ -1,9 +1,12 @@
 #include "physics.h"
 #include<iostream>
 
+const sf::Vector2f Physics::TOP_LEFT = sf::Vector2f(-17.7,10);
+const sf::Vector2f Physics::BOTTOM_RIGHT = sf::Vector2f(17.7,-10);
+
 Physics::Physics()
 {
-gravity = b2Vec2(0.0f, -10.0f);
+gravity = b2Vec2(0.0f, 0.0f);
 world = new b2World(gravity);
 velocityIterations = 6;
 positionIterations = 2;
@@ -12,7 +15,34 @@ density = 1;
 damping = .5;
 stiffness = 10;
 timer = new QTimer(this);
+
+device2physics = device2physics.Identity;
+//device2physics.rotate(180,sf::Vector2f(0,0));
+//device2physics.translate(sf::Vector2f(0,-20));
+//device2physics.scale(sf::Vector2f(-.2,.2),sf::Vector2f(0,0));
+sf::Vector2f centerPhysics = sf::Vector2f((Physics::TOP_LEFT.x +
+                                           Physics::BOTTOM_RIGHT.x)/2,
+                                           (Physics::TOP_LEFT.y +
+                                           Physics::BOTTOM_RIGHT.y)/2);
+sf::Vector2f centerPantograph = sf::Vector2f((Pantograph::TOP_LEFT.x +
+                                              Pantograph::BOTTOM_RIGHT.x)/2,
+                                              (Pantograph::TOP_LEFT.y +
+                                              Pantograph::BOTTOM_RIGHT.y)/2);
+device2physics.translate(centerPhysics - centerPantograph);
+float xScale = (Physics::TOP_LEFT.x - centerPhysics.x)/
+        (Pantograph::TOP_LEFT.x - centerPantograph.x);
+float yScale = (Physics::TOP_LEFT.y - centerPhysics.y)/
+        (Pantograph::TOP_LEFT.y - centerPantograph.y);
+std::cout << "Translation : " << (centerPhysics - centerPantograph).x << " " << (centerPhysics - centerPantograph).y << std::endl;
+std::cout << "Scale : " << xScale << " " << yScale << std::endl;
+std::cout << "Center : " << centerPhysics.x << " " << centerPhysics.y << std::endl;
+device2physics.scale(sf::Vector2f(xScale,yScale), -(centerPhysics - centerPantograph));
+sf::Vector2f testPoint= device2physics.transformPoint(Pantograph::TOP_LEFT);
+std::cout << "Transformed top left : " << testPoint.x << " " << testPoint.y << std::endl;
+testPoint= device2physics.transformPoint(Pantograph::BOTTOM_RIGHT);
+std::cout << "Transformed bottom right : " << testPoint.x << " " << testPoint.y << std::endl;
 }
+
 
 void Physics::createSolidWall(b2Vec2 position, float rotation,
                               b2Vec2 size, bool isWorkspace=false)
@@ -126,31 +156,27 @@ void Physics::createEffector(float radius)
     effectorShape.m_radius = radius;
     b2FixtureDef effectorFixtureDef;
     effectorFixtureDef.shape = &effectorShape;
-    effectorFixtureDef.density = .1;
+    effectorFixtureDef.density = .01;
     effectorPhysical->CreateFixture(&effectorFixtureDef);
-    effectorPhysical->SetLinearDamping(40);
+    effectorPhysical->SetLinearDamping(200);
     effector.setPhysical(effectorPhysical);
     effector.setRadius(radius);
+    effector.setTransformHaptic(device2physics);
 }
 
  void Physics::createEntities()
  {
       std::cout << "creating entities" << std::endl;
-     createWorkspace(-17.7*.95,17.7*.95,-10*.95,10*.95,1);
+     //createWorkspace(-17.7*.95,17.7*.95,-10*.95,10*.95,1);
+     createWorkspace(TOP_LEFT.x,BOTTOM_RIGHT.x,
+                     BOTTOM_RIGHT.y,TOP_LEFT.y,.5);
      std::cout << "workspace created" << std::endl;
      createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.4);
      createBall(b2Vec2(0,5),2,35.f,0.5f,1,0.4);
      createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
-     createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2));
-     createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2));
-     //createBall(b2Vec2(5,0),2,50.f,0.8f,2,0.4);
-     //createBall(b2Vec2(0,0),2,50.f,0.8f,2,0.4);
-     //createBall(b2Vec2(-5,0),2,50.f,0.8f,2,0.4);
-     //createBall(b2Vec2(5,-5),2,50.f,0.8f,2,0.4);
-     //createBall(b2Vec2(0,-5),2,50.f,0.8f,2,0.4);
-     //createBall(b2Vec2(-5,-5),2,50.f,0.8f,2,0.4);
+     createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2),false);
+     createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2),false);
      createEffector(1);
-     //createSolidWall(b2Vec2(0,-8.0f),1, b2Vec2(10,.25)); //TODO: fix rotation
      //emit worldCreated();
  }
 
@@ -243,7 +269,6 @@ void Physics::deleteBody(int index)
         bodyList[index].destroyNodes();
         bodyList.removeAt(index);
     }
-    std::cout <<  bodyList.size() << " bodies left"<< std::endl;
     emit objectListUpdated(bodyList);
     startSim();
 }
@@ -256,7 +281,6 @@ void Physics::setHapticInterface(HapticInterface *i)
 void Physics::step()
 {
     QVector2D position(hapticDevice->getPosition());
-   // std::cout << "position : " << position.x() << " "<< position.y() << std::endl;
     emit forceUpdated(effector.updateForce(position));
     world->Step(timeStep,velocityIterations, positionIterations);
 }
@@ -279,7 +303,6 @@ void Physics::stopSim()
 void Physics::reset()
 {
     size_t nbBodies = getBodyCount();
-    std::cout << nbBodies << std::endl;
     //delete bodies from last to first
     for(size_t i(0); i <nbBodies;i++)
     {

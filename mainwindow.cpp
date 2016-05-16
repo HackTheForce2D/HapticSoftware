@@ -78,3 +78,8 @@ void MainWindow::bodyclicked(int bodyIndex)
        objectList->setCurrentIndex(qIndex);
     }
 }
+
+void MainWindow::on_actionCalibrate_triggered()
+{
+    emit calibrationStarted();
+}

@@ -208,12 +208,14 @@ void communicationPC(Parametres p){
     sf::TcpListener listener;
 
 	// bind the listener to a port
+	
 	if (listener.listen(53200) != sf::Socket::Done)
 	{
      error("ERROR on binding");
 	}
 	
 	sf::TcpSocket client;
+	while(1){
 	if (listener.accept(client) != sf::Socket::Done)
 	{
     error("ERROR on accept");
@@ -223,7 +225,8 @@ void communicationPC(Parametres p){
     sf::Packet retour;
     //fin comm
     //int encodedAngle(0); //test incrementing
-    while(1){
+    int status = sf::Socket::Done;
+    while(status == sf::Socket::Done){
 		if(horlogeHaptique.getElapsedTime().asMilliseconds() > 1000){
 			horlogeHaptique.restart();
 			tauxHaptique = boucleHaptique;			
@@ -249,14 +252,24 @@ void communicationPC(Parametres p){
 		//angles << OAB << OED;
 		// TCP socket:
 		//if(client.send(angles) != sf::Socket::Done)
-		if(client.send(&s,8) != sf::Socket::Done)
+		status = client.send(&s,8);
+		if(status != sf::Socket::Done)
 		{
-			error("ERROR sending data");
+			//error("ERROR sending data");
+			std::cout << "error writing" << std::endl;
+			client.disconnect();
+			couple.x = 0;
+		    couple.y = 0;
 		}//else std::cout << "sent" << std::endl;
 		size_t bytesReceived;
-		if (client.receive(r,4,bytesReceived) != sf::Socket::Done)
+		status = client.receive(r,4,bytesReceived);
+		if (status != sf::Socket::Done)
         {
-		 error("ERROR reading from socket");
+		 //error("ERROR reading from socket");
+		 std::cout << "error reading" << std::endl;
+		 client.disconnect();
+		 couple.x = 0;
+		 couple.y = 0;
 		}        
 		else
 		{
@@ -293,4 +306,5 @@ void communicationPC(Parametres p){
 
 	    sf::sleep(delai);
 	}
+}
 }

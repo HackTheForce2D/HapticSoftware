@@ -12,26 +12,36 @@ class Visual : public QSfmlCanvas
     Q_OBJECT
 public:
     Visual(QWidget* Parent);
+    static const QVector2D TOP_LEFT;
+    static const QVector2D BOTTOM_RIGHT;
     void setPhysics(Physics *newPhysics);
     void startDisplay();
 
 public slots:
     void startCreationMode();
     void endCreationMode();
+    void startCalibrationMode();
+    void endCalibrationMode();
 
 signals:
     void bodyClicked(int index);
     void createNewBody(b2Vec2 position, float radius);
+    void calibrationPointEntered(int index);
+    void calibrationFinished();
 
 private:
     Physics *physics;
     sf::VertexArray polygon;
-    sf::CircleShape newBall;
+    sf::CircleShape newBall,calibrationTarget;
     sf::RectangleShape newWall;
+    sf::VertexArray workspaceBounds;
     sf::Transform physics2graphics;
+    sf::Vector2f topLeft, bottomRight;
     bool creationMode;
+    int calibrationPoint;
     float radius;
     void defineTransform(QSize windowSize);
+    void nextCalibrationPoint();
     void getObjectLocations();
     QVector2D convertCoordinates();
     void resizeEvent(QResizeEvent * event);
