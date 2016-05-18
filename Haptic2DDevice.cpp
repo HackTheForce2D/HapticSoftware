@@ -242,10 +242,13 @@ void communicationPC(Parametres p){
 		//encodedAngle+=50;
 		//encodedAngle &= 4095;
 		int encodedAngle(0);
+		int offset1(1000), offset2(2500);
 		encodedAngle = (int)(OAB*4096/(2*pi));
+		encodedAngle = (encodedAngle + offset1)%4096;
 		s[0] = (char)(encodedAngle >> 8)&255;
 		s[1] = (char)(encodedAngle)&255;
 		encodedAngle = (int)(OED*4096/(2*pi));
+		encodedAngle = (encodedAngle + offset2)%4096;
 		s[2] = (char)(encodedAngle >> 8)&255;
 		s[3] = (char)(encodedAngle)&255;
 		//angles << s;
