@@ -3,7 +3,6 @@
 
 #include<qsfmlcanvas.h>
 #include<QVector2D>
-#include<SFML/Graphics.hpp>
 #include<physics.h>
 #include<QResizeEvent>
 

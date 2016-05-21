@@ -42,12 +42,13 @@ void Effector::setPhysical(b2Body * effectorPhysical)
     physical = effectorPhysical;
 }
 
-// set
+// set the graphical radius of the effector (in pixels)
 void Effector::setRadius(float newRadius)
 {
     radius = newRadius;
 }
 
+// Update the position of the graphical object to match the Box2D position
 void Effector::updateGraphic()
 {
     sf::Vector2f p = convertPosition(physical->GetPosition());
@@ -72,7 +73,6 @@ QVector2D Effector::updateForce(QVector2D position)
 {
     sf::Vector2f positionSf(convertPosition(position));
     positionSf = device2physics.transformPoint(positionSf);
-    //std::cout << "virtual at : " << positionSf.x << "," << positionSf.y << std::endl;
     b2Vec2 positionb2(convertPosition(positionSf));
     //Proportional control to make the physical object follow the user
     kp = 100;
@@ -84,6 +84,8 @@ QVector2D Effector::updateForce(QVector2D position)
 
 }
 
+// Utility functions to convert between the 2D Vector types
+// defined by the 3 libraries used
 sf::Vector2f Effector::convertPosition(b2Vec2 v)
 {
     return sf::Vector2f(v.x,v.y);

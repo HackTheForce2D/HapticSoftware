@@ -9,7 +9,9 @@ const QVector2D Visual::BOTTOM_RIGHT = QVector2D(300,480);
 Visual::Visual(QWidget* Parent) :
     QSfmlCanvas(Parent)
 {
-    physics = nullptr;
+   // physics = nullptr;
+    //Initialize the Physics pointer as a null pointer
+    physics = 0;
     setMouseTracking(true);
     radius = 2;
     calibrationPoint = -1;
@@ -32,7 +34,7 @@ void Visual::OnUpdate()
     }
     // Draw the physical bodies' graphical representations
     // Test if simulation is already launched to avoid segmentation fault
-    else if(physics != nullptr)
+    else if(physics != 0)
     {
         // Update graphical position to match Box2D position
         physics->updateBodies();
@@ -111,7 +113,7 @@ void Visual::defineTransform(QSize windowSize)
 
     // Assign the transform to the physical simulation to be transmitted to
     // each body. Check if simulation already launched to avoid segfault
-    if(physics != nullptr) physics->setTransform(physics2graphics);
+    if(physics != 0) physics->setTransform(physics2graphics);
 
 }
 
@@ -119,12 +121,15 @@ void Visual::defineTransform(QSize windowSize)
 void Visual::mousePressEvent(QMouseEvent *event)
 {
     // Get the coordinates of the clicked pixel (origin on upper left corner)
-    sf::Vector2f clickedPos(event->localPos().x(),event->localPos().y());
+    sf::Vector2f clickedPos(event->pos().x(),event->pos().y());
     // Convert it to Box2D coordinates
     clickedPos = physics2graphics.getInverse().transformPoint(clickedPos);
+    // If the creation dialog is open, create a new body at this location
     if(creationMode){
         emit createNewBody(b2Vec2(clickedPos.x,clickedPos.y),radius);
     }
+    // Otherwise, check if a body was clicked and select it
+    // unselect all bodies if the user clicked on empty space (index = -1)
     else
     {
         size_t bodyCount = physics->getBodyCount();
@@ -136,7 +141,6 @@ void Visual::mousePressEvent(QMouseEvent *event)
             {
                 bodyIndex = i;
             }
-           // std::cout << physics->getBody(i).contains(clickedPos) << std::endl;
         }
         emit bodyClicked(bodyIndex);
     }
@@ -147,7 +151,7 @@ void Visual::mouseMoveEvent(QMouseEvent * event)
 {
     if(creationMode)
     {
-        newBall.setPosition(sf::Vector2f(event->localPos().x(),event->localPos().y()));
+        newBall.setPosition(sf::Vector2f(event->pos().x(),event->pos().y()));
     }
 }
 

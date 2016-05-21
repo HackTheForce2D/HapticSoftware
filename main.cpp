@@ -6,27 +6,14 @@
 #include <QPushButton>
 #include <QListView>
 
-//Q_DECLARE_METATYPE(QList<Body>)
-
-float testOptim(QVector<float> x)
-{
-    //quadratic function to test the optimizer used for calibration
-    return (x[0]-60)*(x[0]-60)+
-           (x[1]-100)*(x[1]-100)+
-           (x[2]-135)*(x[2]-135)+
-           (x[3]-2300)*(x[3]-2300)+
-           (x[4]+2300)*(x[4]+2300);
-}
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.addLibraryPath("Plugins");
     MainWindow w;
     w.show();
     ConnectionDialog connectionDialog;
-    //c.show();
     CreateObject createObjectDialog;
-    //createObjectDialog.show();
     Visual * display =  w.findChild<Visual*>(QString("display"));
     QPushButton * buttonRun = w.findChild<QPushButton*>(QString("buttonRun"));
     QPushButton * buttonStop = w.findChild<QPushButton*>(QString("buttonStop"));
@@ -38,7 +25,7 @@ int main(int argc, char *argv[])
 
     //Register the custom/foreign types so we can send them in signals
     qRegisterMetaType<Body>("Body");
-    qRegisterMetaType<QList<Body>>("QList<Body>");
+    qRegisterMetaType<QList<Body> >("QList<Body>");
     qRegisterMetaType<b2Vec2>("b2Vec2");
 
     //Set up signals exchanged between the classes
@@ -54,7 +41,7 @@ int main(int argc, char *argv[])
     QObject::connect(buttonStop,SIGNAL(clicked()),
                      &physics,SLOT(stopSim()));
 
-    // Add, delete and deleteAll buttons (object editor)
+    // Object creation signals
     QObject::connect(&w, SIGNAL(deleteAt(int)),
                      &physics,SLOT(deleteBody(int)));
     QObject::connect(&w, SIGNAL(deleteAll()),
@@ -63,28 +50,6 @@ int main(int argc, char *argv[])
                      &createObjectDialog,SLOT(show()));
     QObject::connect(&w, SIGNAL(createObject()),
                      display,SLOT(startCreationMode()));
-
-    // Object selection signals
-    QObject::connect(&w, SIGNAL(selectedObject(int)),
-                     &physics,SLOT(selectBody(int)));
-    QObject::connect(&w, SIGNAL(findDevice()),
-                     &connectionDialog,SLOT(show()));
-
-
-    QObject::connect(&w,SIGNAL(deleteAll()), //replace this signal
-                     display, SLOT(endCreationMode()));
-    QObject::connect(display,SIGNAL(bodyClicked(int)),
-                     &w,SLOT(bodyclicked(int)));
-    QObject::connect(display,SIGNAL(bodyClicked(int)),
-                      &physics,SLOT(selectBody(int)));
-    QObject::connect(&connectionDialog,SIGNAL(connectToDevice(QString,int)),
-                     &ethernetLink,SLOT(connectToHost(QString ,int)));
-
-    // Send the list of physical bodies when a new body is added
-
-    QObject::connect(&physics,SIGNAL(objectListUpdated(QList<Body>)),
-                      &w, SLOT(updateListView(QList<Body>)));
-
     QObject::connect(&createObjectDialog,SIGNAL(densityChanged(float)),
                      &physics,SLOT(setDensity(float)));
     QObject::connect(&createObjectDialog,SIGNAL(stiffnessChanged(float)),
@@ -95,28 +60,32 @@ int main(int argc, char *argv[])
                      display,SLOT(endCreationMode()));
     QObject::connect(display,SIGNAL(createNewBody(b2Vec2,float)),
                      &physics,SLOT(createBall(b2Vec2,float)));
-    QObject::connect(&w,SIGNAL(calibrationStarted()),
-                     display, SLOT(startCalibrationMode()));
+
+    // Object selection signals
+    QObject::connect(&w, SIGNAL(selectedObject(int)),
+                     &physics,SLOT(selectBody(int)));
+    QObject::connect(display,SIGNAL(bodyClicked(int)),
+                     &w,SLOT(bodyclicked(int)));
+    QObject::connect(display,SIGNAL(bodyClicked(int)),
+                      &physics,SLOT(selectBody(int)));
+    QObject::connect(&connectionDialog,SIGNAL(connectToDevice(QString,int)),
+                     &ethernetLink,SLOT(connectToHost(QString ,int)));
+
+    // Send the list of physical bodies when a new body is added
+    QObject::connect(&w, SIGNAL(findDevice()),
+                     &connectionDialog,SLOT(show()));
+    QObject::connect(&physics,SIGNAL(objectListUpdated(QList<Body>)),
+                      &w, SLOT(updateListView(QList<Body>)));
 
     // Calibration signals
-    Pantograph pTest;
+    QObject::connect(&w,SIGNAL(calibrationStarted()),
+                     display, SLOT(startCalibrationMode()));
     QObject::connect(display, SIGNAL(calibrationPointEntered(int)),
                      &ethernetLink, SLOT(sendCalibrationAngle(int)));
     QObject::connect(&ethernetLink, SIGNAL(calibrationAngle(int,QVector2D)),
                      &pTest, SLOT(setCalibAngle(int,QVector2D)));
     QObject::connect(display,SIGNAL(calibrationFinished()),
                      &physics, SLOT(startSim()));
-    //QObject::connect(display,SIGNAL(calibrationFinished()),
-      //               &pTest, SLOT(calibrate()));
-
-    //Testing the optimization function
-    //
-    //QVector<float> xStartTest(5,0);
-   // xStartTest[0] = 1;
-   // xStartTest[1] = 4;
-    //xStartTest[2] = 5;
-    //pTest.nelderMead(testOptim,xStartTest);
-
 
     //Launch communication thread
     ethernetLink.moveToThread(&ethernetLink);
@@ -126,7 +95,9 @@ int main(int argc, char *argv[])
     physics.start();
 
     int exitValue(a.exec());
-    physics.exit(); // Fix this
+    // Finish the threads before quiting the application to avoid errors
+    // Not working as intended
+    physics.exit();
     ethernetLink.exit();
     return exitValue;
 }

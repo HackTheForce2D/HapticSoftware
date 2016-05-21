@@ -49,12 +49,12 @@ int main()
 	int boucleGraphique(0),tauxGraphique(0),tauxHaptique(0);
 	sf::Clock horlogeGraphique, horlogeHaptique;
 	//--------------------fenêtre graphique--------------------------------
-    sf::RenderWindow window(sf::VideoMode(400, 350),"Haptics");
+    sf::RenderWindow window(sf::VideoMode(400, 450),"Haptics");
     window.setPosition(sf::Vector2i(100,50));
     std::ostringstream texteSurImage;
     //------------paramètres du patographe en mm--------------------------
     //double a(40),b(100),c(125),ymin(50),f(177),g(100),OAB(0),OED(0);
-    const double a(60),b(100),c(135),ymin(70),f(177),g(100);
+    const double a(60),b(100),c(135),ymin(90),f(177),g(100);
     double OAB(0),OED(0);
 	sf::Vector2f A(-a/2,10),Bphys(0,0),B(0,0),Cphys(0,0),C(0,0),Dphys(0,0),D(0,0),E(a/2,10);
 	sf::Vector2f origine(200,0);
