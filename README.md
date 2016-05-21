@@ -3,7 +3,7 @@
 This application is intended to communicate with a 2-DOF haptic device, allowing the user to feel a force feedback from interactions with virtual objects in a physics simulation.
 
 
-This application uses the libraries Qt 5.6, SFML 2.3.2 and Bo2D 2.3.2. Instructions for installing the libraries can be found in the following links: 
+This application uses the libraries Qt 5.6, SFML 2.3.2 and Box2D 2.3.2. Instructions for installing the libraries can be found in the following links: 
 
 Qt: 
 https://www.qt.io/download/ 
