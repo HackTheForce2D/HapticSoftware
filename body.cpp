@@ -160,7 +160,8 @@ bool Body::operator==(const Body& rhs)
     return(getId() == rhs.getId());
 }
 
-
+// Remove the Body's b2Body components from the b2World
+// Called when the body is deleted
 void Body::destroyNodes()
 {
         size_t numberOfNodes(nodeList.size());

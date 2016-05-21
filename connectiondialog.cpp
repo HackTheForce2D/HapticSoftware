@@ -14,13 +14,10 @@ ConnectionDialog::~ConnectionDialog()
     delete ui;
 }
 
-//void ConnectionDialog::on_buttonBox_clicked(QAbstractButton *button)
+// When user clicks OK, send a signal with the IP address and port
+// Signal is received by the HapticInterface class which connects to the device
 void ConnectionDialog::accept()
 {
-    //if (button-> == QDialogButtonBox::AcceptRole)
-    //if(ui->buttonBox->standardButton(button) == QDialogButtonBox::AcceptRole)
-    //if (ui->buttonBox->button(QDialogButtonBox::Help) == button)
-    //if(QDialogButtonBox::buttonRole(button) == QDialogButtonBox::AcceptRole)
     if(QDialogButtonBox::AcceptRole == QDialogButtonBox::AcceptRole)
     {
         QLineEdit* addressBox =

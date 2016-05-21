@@ -1,7 +1,7 @@
 #include "pantograph.h"
 
-const sf::Vector2f Pantograph::TOP_LEFT = sf::Vector2f(-177/2,70);
-const sf::Vector2f Pantograph::BOTTOM_RIGHT = sf::Vector2f(177/2,170);
+const sf::Vector2f Pantograph::TOP_LEFT = sf::Vector2f(-177/2,90);
+const sf::Vector2f Pantograph::BOTTOM_RIGHT = sf::Vector2f(177/2,190);
 const int Pantograph::ENCODER_MAX_VAL = 4096;
 // Constant to convert the encoder reading to an angle in radians
 const float Pantograph::ENCODER_TO_RAD = 2*(3.1415926)/ENCODER_MAX_VAL;
@@ -160,7 +160,7 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
     int nbDimensions(xStart.size());
     const int maxIterations(50000);
     //const int maxIterations(1);
-    QVector<QVector<float>> P(N,QVector<float>(nbDimensions,0));
+    QVector<QVector<float> > P(N,QVector<float>(nbDimensions,0));
     QVector<float> xBest(nbDimensions,0);
     QVector<int> R(N,0); // rank
     QVector<float> F(N,0); // adaptive force
@@ -193,10 +193,10 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
         // Sort the costs in ascending order
         std::sort(index.begin(), index.end(),
                   [&](const int& a, const int& b) {
-                  return (y[a] > y[b]);
+                  return ((float)y[a] > (float)y[b]);
         });
         // Generate intermediate population M by weighed random selection
-        QVector<QVector<float>> M(N,QVector<float>(nbDimensions,0));
+        QVector<QVector<float> > M(N,QVector<float>(nbDimensions,0));
         for(int i(0); i< N; i++)
         {
             int dice(rand()%((int)Fsum*10000));
@@ -208,7 +208,7 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
         }
         // Crossover
         //std::cout << "crossover" << std::endl;
-        QVector<QVector<float>> Mx(N,QVector<float>(nbDimensions,0));
+        QVector<QVector<float> > Mx(N,QVector<float>(nbDimensions,0));
         for(int i(0); i< N; i++)
         {
             int k1(rand()%N),k2(rand()%N);
@@ -259,7 +259,7 @@ void Pantograph::nelderMead(QVector<float> xStart)
     int totalIterations = 0;
     int nbDimensions(xStart.size());
     int nbVertices(nbDimensions+1);
-    QVector<QVector<float>> X(nbVertices,QVector<float>(nbDimensions,0));
+    QVector<QVector<float> > X(nbVertices,QVector<float>(nbDimensions,0));
     QVector<float> xBest(nbDimensions,0);
     float error2 = 1;
     // We restart the algorithm after 50 iterations, up to 5000 times
@@ -298,7 +298,7 @@ void Pantograph::nelderMead(QVector<float> xStart)
             // http://stackoverflow.com/questions/17554242/
             std::sort(index.begin(), index.end(),
                 [&](const int& a, const int& b) {
-                    return (y[a] < y[b]);
+                    return ((float)y[a] < (float)y[b]);
                 }
             );
             // index of the highest value of the function

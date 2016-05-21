@@ -16,10 +16,12 @@ HapticInterface::HapticInterface(QObject *parent) : QThread(parent)
 }
 
 //void run();
-    void HapticInterface::run(){
-    connect(device, &QIODevice::readyRead, this, &HapticInterface::readData);
-    exec();
-  }
+    void HapticInterface::run()
+    {
+        connect(device, SIGNAL(readyRead()), this, SLOT(readData()));
+        exec();
+    //connect(device, &QIODevice::readyRead, this, &HapticInterface::readData);
+    }
 
 void HapticInterface::setForce(QVector2D newForce)
 {
