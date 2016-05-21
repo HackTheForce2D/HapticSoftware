@@ -1,8 +1,7 @@
 #ifndef BODY_H
 #define BODY_H
 
-//#include<SFML/Graphics.hpp>
-#include<include/SFML/Graphics.hpp>
+#include<SFML/Graphics.hpp>
 #include<Box2D/Box2D.h>
 #include<QVector>
 #include<QVector2D>

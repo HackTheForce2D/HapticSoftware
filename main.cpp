@@ -82,8 +82,6 @@ int main(int argc, char *argv[])
                      display, SLOT(startCalibrationMode()));
     QObject::connect(display, SIGNAL(calibrationPointEntered(int)),
                      &ethernetLink, SLOT(sendCalibrationAngle(int)));
-    QObject::connect(&ethernetLink, SIGNAL(calibrationAngle(int,QVector2D)),
-                     &pTest, SLOT(setCalibAngle(int,QVector2D)));
     QObject::connect(display,SIGNAL(calibrationFinished()),
                      &physics, SLOT(startSim()));
 

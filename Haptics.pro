@@ -43,6 +43,7 @@ FORMS    += mainwindow.ui \
 
 unix:!macx: LIBS += -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
 
+
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/SFML-2.3.2/lib/release/ -lsfml-graphics -lsfml-window -lsfml-system
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/SFML-2.3.2/lib/debug/ -lsfml-graphics -lsfml-window -lsfml-system
 #else:unix: LIBS += -L$$PWD/SFML-2.3.2/lib/ -lsfml-graphics -lsfml-window -lsfml-system
