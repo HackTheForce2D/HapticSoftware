@@ -6,7 +6,7 @@ This application is intended to communicate with a 2-DOF haptic device, allowing
 This application uses the libraries Qt 5.6, SFML 2.3.2 and Bo2D 2.3.2. Instructions for installing the libraries can be found in the following links: 
 
 Qt: 
-https://www.qt.io/download/
+https://www.qt.io/download/ 
 Download and install Qt Creator, then import the project by clicking on File > Open File or Project and selecting the Haptics.pro file in the project directory
 
 SFML: 
