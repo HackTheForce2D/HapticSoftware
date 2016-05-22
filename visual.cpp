@@ -103,13 +103,14 @@ void Visual::defineTransform(QSize windowSize)
     physics2graphics.translate(center);
     physics2graphics.scale(scale);
 
-    std::cout << "Translation : " << center.x << " " << center.y << std::endl;
-    std::cout << "Scale : " << scale.x << " " << scale.y << std::endl;
-    std::cout << "Center : " << centerPhysics.x << " " << centerPhysics.y << std::endl;
-    sf::Vector2f testPoint= physics2graphics.transformPoint(Physics::TOP_LEFT);
-    std::cout << "Transformed top left : " << testPoint.x << " " << testPoint.y << std::endl;
-    testPoint= physics2graphics.transformPoint(Physics::BOTTOM_RIGHT);
-    std::cout << "Transformed bottom right : " << testPoint.x << " " << testPoint.y << std::endl;
+    // Uncomment the following lines for debugging if the transform is not correct
+    //std::cout << "Translation : " << center.x << " " << center.y << std::endl;
+    //std::cout << "Scale : " << scale.x << " " << scale.y << std::endl;
+    //std::cout << "Center : " << centerPhysics.x << " " << centerPhysics.y << std::endl;
+    //sf::Vector2f testPoint= physics2graphics.transformPoint(Physics::TOP_LEFT);
+    //std::cout << "Transformed top left : " << testPoint.x << " " << testPoint.y << std::endl;
+    //testPoint= physics2graphics.transformPoint(Physics::BOTTOM_RIGHT);
+    //std::cout << "Transformed bottom right : " << testPoint.x << " " << testPoint.y << std::endl;
 
     // Assign the transform to the physical simulation to be transmitted to
     // each body. Check if simulation already launched to avoid segfault
@@ -218,7 +219,7 @@ void Visual::nextCalibrationPoint()
 void Visual::endCalibrationMode()
 {
     calibrationPoint = -1;
-    emit calibrationFinished();
+    emit readyToCalibrate();
 }
 
 void Visual::setPhysics(Physics *newPhysics)

@@ -3,44 +3,42 @@
 
 const sf::Vector2f Physics::TOP_LEFT = sf::Vector2f(-17.7,10);
 const sf::Vector2f Physics::BOTTOM_RIGHT = sf::Vector2f(17.7,-10);
+const int  Physics::FORCE_FACTOR = 20;
 
 Physics::Physics()
 {
-gravity = b2Vec2(0.0f, 0.0f);
-world = new b2World(gravity);
-velocityIterations = 6;
-positionIterations = 2;
-timeStep = 0.001f;
-density = 1;
-damping = .5;
-stiffness = 10;
-timer = new QTimer(this);
+    // Parameters for Box2D
+    gravity = b2Vec2(0.0f, 0.0f);
+    world = new b2World(gravity);
+    velocityIterations = 6;
+    positionIterations = 2;
+    timeStep = 0.001f;
+    density = 1;
+    damping = .5;
+    stiffness = 10;
+    timer = new QTimer(this);
 
-device2physics = device2physics.Identity;
-//device2physics.rotate(180,sf::Vector2f(0,0));
-//device2physics.translate(sf::Vector2f(0,-20));
-//device2physics.scale(sf::Vector2f(-.2,.2),sf::Vector2f(0,0));
-sf::Vector2f centerPhysics = sf::Vector2f((Physics::TOP_LEFT.x +
-                                           Physics::BOTTOM_RIGHT.x)/2,
-                                           (Physics::TOP_LEFT.y +
-                                           Physics::BOTTOM_RIGHT.y)/2);
-sf::Vector2f centerPantograph = sf::Vector2f((Pantograph::TOP_LEFT.x +
-                                              Pantograph::BOTTOM_RIGHT.x)/2,
-                                              (Pantograph::TOP_LEFT.y +
-                                              Pantograph::BOTTOM_RIGHT.y)/2);
-device2physics.translate(centerPhysics - centerPantograph);
-float xScale = (Physics::TOP_LEFT.x - centerPhysics.x)/
-        (Pantograph::TOP_LEFT.x - centerPantograph.x);
-float yScale = (Physics::TOP_LEFT.y - centerPhysics.y)/
-        (Pantograph::TOP_LEFT.y - centerPantograph.y);
-std::cout << "Translation : " << (centerPhysics - centerPantograph).x << " " << (centerPhysics - centerPantograph).y << std::endl;
-std::cout << "Scale : " << xScale << " " << yScale << std::endl;
-std::cout << "Center : " << centerPhysics.x << " " << centerPhysics.y << std::endl;
-device2physics.scale(sf::Vector2f(xScale,yScale), -(centerPhysics - centerPantograph));
-sf::Vector2f testPoint= device2physics.transformPoint(Pantograph::TOP_LEFT);
-std::cout << "Transformed top left : " << testPoint.x << " " << testPoint.y << std::endl;
-testPoint= device2physics.transformPoint(Pantograph::BOTTOM_RIGHT);
-std::cout << "Transformed bottom right : " << testPoint.x << " " << testPoint.y << std::endl;
+    // Set the coordinate transform to convert real workspace coordinates
+    // into physical simulation coordinates
+    device2physics = device2physics.Identity;
+    sf::Vector2f centerPhysics = sf::Vector2f((Physics::TOP_LEFT.x +
+                                               Physics::BOTTOM_RIGHT.x)/2,
+                                               (Physics::TOP_LEFT.y +
+                                               Physics::BOTTOM_RIGHT.y)/2);
+    sf::Vector2f centerPantograph = sf::Vector2f((Pantograph::TOP_LEFT.x +
+                                                  Pantograph::BOTTOM_RIGHT.x)/2,
+                                                  (Pantograph::TOP_LEFT.y +
+                                                  Pantograph::BOTTOM_RIGHT.y)/2);
+    device2physics.translate(centerPhysics - centerPantograph);
+    float xScale = (Physics::TOP_LEFT.x - centerPhysics.x)/
+            (Pantograph::TOP_LEFT.x - centerPantograph.x);
+    float yScale = (Physics::TOP_LEFT.y - centerPhysics.y)/
+            (Pantograph::TOP_LEFT.y - centerPantograph.y);
+    device2physics.scale(sf::Vector2f(xScale,yScale), -(centerPhysics - centerPantograph));
+    // Uncomment this for debugging if the transform is not correct
+    //sf::Vector2f testPoint= device2physics.transformPoint(Pantograph::TOP_LEFT);
+    //testPoint= device2physics.transformPoint(Pantograph::BOTTOM_RIGHT);
+
 }
 
 
@@ -96,6 +94,8 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
     int nodeCount = (2*pi*radius/maxSpacing); //not including center
     float nodeDensity(mass/(nodeRadius*nodeRadius*(nodeCount+1)));
     b2BodyDef ballNodeDef;
+    ballNodeDef.linearDamping = 1;
+    ballNodeDef.angularDamping = 1;
     b2CircleShape ballNodeShape;
     ballNodeShape.m_radius = nodeRadius;
     b2FixtureDef ballFixtureDef;
@@ -103,8 +103,14 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
     ballFixtureDef.density = nodeDensity;
     ballNodeDef.type = b2_dynamicBody;
     b2DistanceJointDef nodeLinkDef;
-    nodeLinkDef.frequencyHz = stiffness;
+    b2MotorJointDef nodeLinkMotorDef;
+    // Smaller stiffness in the link from the center to the edge
+    // So that the effector can deform the ball without penetrating it
+    nodeLinkDef.frequencyHz = sqrt((stiffness)*FORCE_FACTOR/mass);
     nodeLinkDef.dampingRatio = damping;
+    nodeLinkMotorDef.correctionFactor = stiffness;
+    nodeLinkMotorDef.maxForce = stiffness*radius;
+    nodeLinkMotorDef.maxTorque = 0;
 
     //center
     ballNodeDef.position.Set(position.x,position.y);
@@ -116,6 +122,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
     //b2Body* firstNode =ballCenter,lastNode = ballCenter;
     for(int i(0);i<nodeCount;i++)
     {
+        ballNodeDef.type = b2_dynamicBody;
         nodePosition = position + radius*b2Vec2(cos(2*pi*i/nodeCount),
                                                 sin(2*pi*i/nodeCount));
         ballNodeDef.position.Set(nodePosition.x,nodePosition.y);
@@ -125,12 +132,16 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                                ballCenter->GetWorldCenter(),
                                ballNode->GetWorldCenter());
         world->CreateJoint(&nodeLinkDef);
+        nodeLinkMotorDef.Initialize(ballCenter,ballNode);
+       // world->CreateJoint(&nodeLinkMotorDef);
         if(i>0)
         {
             nodeLinkDef.Initialize(ballNode,ball.getNode(i-1),
                                    ballNode->GetWorldCenter(),
                                    ball.getNode(i-1)->GetWorldCenter());
             world->CreateJoint(&nodeLinkDef);
+            nodeLinkMotorDef.Initialize(ballNode,ball.getNode(i-1));
+            //world->CreateJoint(&nodeLinkMotorDef);
         }
         ball.addNode(ballNode);
     }
@@ -138,6 +149,8 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                            ball.getNode(nodeCount-1)->GetWorldCenter(),
                            ball.getNode(1)->GetWorldCenter());
     world->CreateJoint(&nodeLinkDef);
+    nodeLinkMotorDef.Initialize(ball.getNode(nodeCount-1),ball.getNode(1));
+    //world->CreateJoint(&nodeLinkMotorDef);
     ball.finish();
     ball.setName("Ball");
     ball.setTransform(physics2graphics);
@@ -166,18 +179,14 @@ void Physics::createEffector(float radius)
 
  void Physics::createEntities()
  {
-      std::cout << "creating entities" << std::endl;
-     //createWorkspace(-17.7*.95,17.7*.95,-10*.95,10*.95,1);
      createWorkspace(TOP_LEFT.x,BOTTOM_RIGHT.x,
                      BOTTOM_RIGHT.y,TOP_LEFT.y,.5);
-     std::cout << "workspace created" << std::endl;
      createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.4);
-     createBall(b2Vec2(0,5),2,35.f,0.5f,1,0.4);
+     createBall(b2Vec2(0,-5),2,35.f,0.5f,1,0.4);
      createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
      createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2),false);
      createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2),false);
      createEffector(1);
-     //emit worldCreated();
  }
 
  int Physics::getBodyCount()
@@ -256,11 +265,6 @@ void Physics::updateBodies()
     effector.updateGraphic();
 }
 
-void Physics::addBall() //TEMP
-{
-    createBall(b2Vec2(0,0),2,35.f,0.5f,1,0.4);
-}
-
 void Physics::deleteBody(int index)
 {
     stopSim();
@@ -303,7 +307,7 @@ void Physics::stopSim()
 void Physics::reset()
 {
     size_t nbBodies = getBodyCount();
-    //delete bodies from last to first
+    //delete bodies from last to first, so their indices don't change
     for(size_t i(0); i <nbBodies;i++)
     {
         deleteBody(nbBodies-i-1);

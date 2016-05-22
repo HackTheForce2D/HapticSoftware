@@ -23,6 +23,7 @@ public:
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void resetGraphical();
+    b2ContactEdge * collisions;
     float radius,kp,forceFactor;
     b2Vec2 force;
     sf::Vector2f convertPosition(b2Vec2 v);

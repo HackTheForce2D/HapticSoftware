@@ -26,7 +26,7 @@ signals:
     void bodyClicked(int index);
     void createNewBody(b2Vec2 position, float radius);
     void calibrationPointEntered(int index);
-    void calibrationFinished();
+    void readyToCalibrate();
 
 private:
     Physics *physics;

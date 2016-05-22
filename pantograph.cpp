@@ -11,9 +11,15 @@ const float Pantograph::MAX_TORQUE = 500;
 Pantograph::Pantograph()
 {
     // Initialize the pantograph's parameters at default values
-    a = 50;
-    b = 80;
-    c = 125;
+    a = 61.2041;
+    b = 100.724;
+    c = 131.68;
+    offset1 = 3065.27;
+    offset2 = 1621.07;
+
+    //a = 50;
+   // b = 80;
+    //c = 125;
     //b1 = 100;
     //b2 = 100;
     //c1 = 135;
@@ -21,8 +27,8 @@ Pantograph::Pantograph()
     //Nelder-Mead can't handle the encoder offsets
     //offset1 = 3090;
     //offset2 = 1530;
-    offset1 = 0;
-    offset2 = 0;
+   // offset1 = 0;
+    //offset2 = 0;
 
     A=QVector2D(-a/2,10);
     B=QVector2D(0,0);
@@ -129,7 +135,6 @@ float Pantograph::f(QVector<float> parameters)
 
 void Pantograph::calibrate()
 {
-    std::cout << "calibrate() called" << std::endl;
     QVector<float> parameters(5,0);
     parameters[0] = a;
     parameters[1] = b;
@@ -154,12 +159,10 @@ void Pantograph::calibrate()
 
 void Pantograph::geneticAlgorithm(QVector<float> xStart)
 {
-    std::cout << "Start" << std::endl;
     float d(0.25), p(1.25), mutationRate(0.10), mutationDelta(2);
     int k(0), stallGenCount(0), stallGenLimit(15),N(30);
     int nbDimensions(xStart.size());
     const int maxIterations(50000);
-    //const int maxIterations(1);
     QVector<QVector<float> > P(N,QVector<float>(nbDimensions,0));
     QVector<float> xBest(nbDimensions,0);
     QVector<int> R(N,0); // rank
@@ -171,7 +174,6 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
         float fi = 2-p + 2*(p-1)*((float)(R[i]-1)/(N-1));
         F[i] = Fsum + fi;
         Fsum += fi;
-        //std::cout << "Rank " << R[i] <<" adaptive force : " << fi << std::endl;
         for(int j(0); j<nbDimensions; j++)
         {
             if(j < 3) P[i][j] = (float)(rand()%100) + 40;
@@ -182,7 +184,6 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
     {
         // Selection
         //Evaluate the function at the population
-        //std::cout << "Selection" << std::endl;
         QVector<float> y(N,0);
         QVector<int> index(N,0);
         for(int i(0); i< N; i++)
@@ -201,13 +202,10 @@ void Pantograph::geneticAlgorithm(QVector<float> xStart)
         {
             int dice(rand()%((int)Fsum*10000));
             int j(0);
-            //std::cout << dice << " " << F[j]*10000 << std::endl;
             while(dice > F[j]*10000) j++;
-            //std::cout << " New element is " << j << std::endl;
             M[i] = P[index[j]];
         }
         // Crossover
-        //std::cout << "crossover" << std::endl;
         QVector<QVector<float> > Mx(N,QVector<float>(nbDimensions,0));
         for(int i(0); i< N; i++)
         {
