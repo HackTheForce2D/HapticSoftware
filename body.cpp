@@ -104,6 +104,8 @@ void Body::updatePosition()
             vertices[i].position = p;
             vertices[i].color = sf::Color::Blue;
         }
+        // For the elastic ball, the last node is the same as the first node
+        // (after the center) to close the circle
         if(bodyType == BALL)
         {
             vertices[nodeCount].position = vertices[1].position;
@@ -132,7 +134,6 @@ void Body::setWallPosition(float rotation)
         for(int i(0);i<4;i++)
         {
             sf::Vector2f p = convertPosition( wallShape->GetVertex(i));
-            //vertices[i].position = physics2graphics.transformPoint(p+p0);
             vertices[i].position = rotateWall.transformPoint(p+p0);
         }
     }

@@ -34,6 +34,7 @@ signals:
     void connected();
     void disconnected();
     void calibrationAngle(int index, QVector2D angles);
+    void calibrationFinished();
 
 private:
     QVector2D encoderReading;

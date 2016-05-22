@@ -22,6 +22,14 @@ public:
 public slots:
     void bodyclicked(int bodyIndex);
 
+    void onDeviceConnected();
+
+    void onDeviceDisconnected();
+
+    void onCalibrationLaunched();
+
+    void onCalibrationFinished();
+
 private slots:
 
     void on_actionConnect_triggered();
@@ -39,18 +47,24 @@ private slots:
 
     void on_actionCalibrate_triggered();
 
+
+    void on_actionDisconnect_triggered();
+
 signals:
     //void displayResized(QSize newSize);
     void findDevice();
+    void disconnectDevice();
     void createObject();
     void deleteAt(int index);
     void deleteAll();
     void selectedObject(int index);
-    void calibrationStarted();
+    void calibrationDemanded();
 
 private:
+    void reportDeviceState();
     Ui::MainWindow *ui;
     int indexSelected;
+    bool deviceConnected;
     QStringListModel *objectListSource;
 };
 

@@ -6,6 +6,7 @@
 #include <QVector2D>
 #include <QTimer>
 #include <body.h>
+#include <cmath>
 #include <QObject>
 #include <effector.h>
 #include <hapticinterface.h>
@@ -18,6 +19,7 @@ class Physics : public QThread
 public:
     Physics();
     static const sf::Vector2f TOP_LEFT, BOTTOM_RIGHT;
+    static const int FORCE_FACTOR;
     void setTimeStep(double timeStep);
     void createEntities();
     void setStiffness(int bodyIndex, double frequence,double damping);
@@ -40,7 +42,6 @@ public slots:
     void reset();
     void selectBody(int);
     void deleteBody(int index);
-    void addBall(); //temporary
     void setDensity(float newDensity);
     void setStiffness(float newStiffness);
     void setDamping(float newDamping);

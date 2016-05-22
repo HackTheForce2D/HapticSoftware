@@ -71,19 +71,31 @@ int main(int argc, char *argv[])
     QObject::connect(&connectionDialog,SIGNAL(connectToDevice(QString,int)),
                      &ethernetLink,SLOT(connectToHost(QString ,int)));
 
-    // Send the list of physical bodies when a new body is added
-    QObject::connect(&w, SIGNAL(findDevice()),
-                     &connectionDialog,SLOT(show()));
+    // Send the list of physical bodies when a new body is added   
     QObject::connect(&physics,SIGNAL(objectListUpdated(QList<Body>)),
                       &w, SLOT(updateListView(QList<Body>)));
 
+    // Device connection signals
+    QObject::connect(&w, SIGNAL(findDevice()),
+                     &connectionDialog,SLOT(show()));
+    QObject::connect(&ethernetLink,SIGNAL(connected()),
+                     &w, SLOT(onDeviceConnected()));
+    QObject::connect(&ethernetLink,SIGNAL(disconnected()),
+                     &w, SLOT(onDeviceDisconnected()));
+    QObject::connect(&w,SIGNAL(disconnectDevice()),
+                     &ethernetLink, SLOT(disconnect()));
+
     // Calibration signals
-    QObject::connect(&w,SIGNAL(calibrationStarted()),
+    QObject::connect(&w,SIGNAL(calibrationDemanded()),
                      display, SLOT(startCalibrationMode()));
     QObject::connect(display, SIGNAL(calibrationPointEntered(int)),
                      &ethernetLink, SLOT(sendCalibrationAngle(int)));
-    QObject::connect(display,SIGNAL(calibrationFinished()),
+    QObject::connect(display,SIGNAL(readyToCalibrate()),
                      &physics, SLOT(startSim()));
+    QObject::connect(display,SIGNAL(readyToCalibrate()),
+                     &w, SLOT(onCalibrationLaunched()));
+    QObject::connect(&ethernetLink, SIGNAL(calibrationFinished()),
+                     &w, SLOT(onCalibrationFinished()));
 
     //Launch communication thread
     ethernetLink.moveToThread(&ethernetLink);

@@ -75,12 +75,21 @@ QVector2D Effector::updateForce(QVector2D position)
     positionSf = device2physics.transformPoint(positionSf);
     b2Vec2 positionb2(convertPosition(positionSf));
     //Proportional control to make the physical object follow the user
-    kp = 100;
+    kp = 200;
     force = kp*(positionb2 - physical->GetPosition());
     physical->ApplyForce(force,physical->GetWorldCenter(),true);
     //return the reaction to the applied force as a QVector2D
     //to be used by the interface with the device
-    return (QVector2D(-force.x,-force.y));
+    collisions =  physical->GetContactList();
+    if(collisions == nullptr) return (QVector2D(0,0));
+    b2Contact * c = collisions->contact;
+    while(c != nullptr)
+    {
+       // if collisions->contact->IsTouching() return (-torque/2);
+        if(c->IsTouching()) return (QVector2D(-force.x/40,-force.y/40));
+        c = c->GetNext();
+    }
+    return (QVector2D(0,0));
 
 }
 

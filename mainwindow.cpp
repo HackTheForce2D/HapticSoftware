@@ -7,14 +7,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    deviceConnected = false;
+    reportDeviceState();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-
 
 void MainWindow::on_actionConnect_triggered()
 {
@@ -81,5 +81,59 @@ void MainWindow::bodyclicked(int bodyIndex)
 
 void MainWindow::on_actionCalibrate_triggered()
 {
-    emit calibrationStarted();
+    emit calibrationDemanded();
+    QLabel * status = findChild<QLabel*>("appStatus");
+    status->setText("Place the effector on the location "
+                   "indicated by the red dot, then press return");
+    QAction * actionCalibrate = findChild<QAction*>("actionCalibrate");
+    actionCalibrate->setVisible(false);
+}
+
+void MainWindow::onDeviceConnected()
+{
+    deviceConnected = true;
+    reportDeviceState();
+}
+
+void MainWindow::onDeviceDisconnected()
+{
+    deviceConnected = false;
+    reportDeviceState();
+}
+
+void MainWindow::reportDeviceState()
+{
+    QLabel * status = findChild<QLabel*>("appStatus");
+    QAction * actionCalibrate = findChild<QAction*>("actionCalibrate");
+    QAction * actionConnect = findChild<QAction*>("actionConnect");
+    QAction * actionDisconnect = findChild<QAction*>("actionDisconnect");
+    if( deviceConnected)
+    {
+        status->setText("Device connected");
+        actionConnect->setVisible(false);
+        actionDisconnect->setVisible(true);
+        actionCalibrate->setVisible(true);
+    }else
+    {
+        status->setText("Device not connected");
+        actionConnect->setVisible(true);
+        actionDisconnect->setVisible(false);
+        actionCalibrate->setVisible(false);
+    }
+}
+
+void MainWindow::onCalibrationLaunched()
+{
+     QLabel * status = findChild<QLabel*>("appStatus");
+     status->setText("Calibrating...");
+}
+
+void MainWindow::onCalibrationFinished()
+{
+     reportDeviceState();
+}
+
+void MainWindow::on_actionDisconnect_triggered()
+{
+    emit disconnectDevice();
 }
