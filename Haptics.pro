@@ -12,7 +12,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Haptics
 TEMPLATE = app
 
-CONFIG(release, debug|release): LIBS += -lBox2D -lsfml-graphics -lsfml-window -lsfml-system \
+CONFIG(release, debug|release): LIBS += -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
+CONFIG += c++11
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -44,16 +45,14 @@ FORMS    += mainwindow.ui \
 unix:!macx: LIBS += -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
 
 
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/SFML-2.3.2/lib/release/ -lsfml-graphics -lsfml-window -lsfml-system
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/SFML-2.3.2/lib/debug/ -lsfml-graphics -lsfml-window -lsfml-system
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Plugins -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Plugins -lBox2D -lsfml-graphics -lsfml-window -lsfml-system
+INCLUDEPATH += $$PWD/Plugins
+DEPENDPATH += $$PWD/Plugins
 #else:unix: LIBS += -L$$PWD/SFML-2.3.2/lib/ -lsfml-graphics -lsfml-window -lsfml-system
 #unix: LIBS += -L$$PWD/lib/SFML/ -lsfml-graphics -lsfml-window -lsfml-system
 
-#INCLUDEPATH += $$PWD/include/SFML
-#DEPENDPATH += $$PWD/include/SFML
-
-#INCLUDEPATH += $$PWD/SFML-2.3.2/include
-#DEPENDPATH += $$PWD/SFML-2.3.2/include
 
 
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Box2D/release/ -lBox2D
