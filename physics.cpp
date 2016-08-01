@@ -133,7 +133,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                                ballNode->GetWorldCenter());
         world->CreateJoint(&nodeLinkDef);
         nodeLinkMotorDef.Initialize(ballCenter,ballNode);
-       // world->CreateJoint(&nodeLinkMotorDef);
+        world->CreateJoint(&nodeLinkMotorDef);
         if(i>0)
         {
             nodeLinkDef.Initialize(ballNode,ball.getNode(i-1),
@@ -181,9 +181,9 @@ void Physics::createEffector(float radius)
  {
      createWorkspace(TOP_LEFT.x,BOTTOM_RIGHT.x,
                      BOTTOM_RIGHT.y,TOP_LEFT.y,.5);
-     createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.4);
-     createBall(b2Vec2(0,-5),2,35.f,0.5f,1,0.4);
-     createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.4);
+     createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.2);
+     createBall(b2Vec2(0,-5),2,35.f,0.5f,1,0.2);
+     createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.2);
      createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2),false);
      createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2),false);
      createEffector(1);
@@ -239,7 +239,7 @@ void Physics::setDamping(float newDamping)
 
 void Physics::createBall(b2Vec2 position, float radius)
 {
-    createBall(position,radius,stiffness,damping,density,0.4);
+    createBall(position,radius,stiffness,damping,density,0.2);
 }
 
 void Physics::setTransform(sf::Transform t)
