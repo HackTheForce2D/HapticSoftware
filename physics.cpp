@@ -38,7 +38,6 @@ Physics::Physics()
     // Uncomment this for debugging if the transform is not correct
     //sf::Vector2f testPoint= device2physics.transformPoint(Pantograph::TOP_LEFT);
     //testPoint= device2physics.transformPoint(Pantograph::BOTTOM_RIGHT);
-
 }
 
 

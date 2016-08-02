@@ -1,8 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project(Haptics)
-include_directories ("${PROJECT_SOURCE_DIR}/Box2D","${PROJECT_SOURCE_DIR}/SFML/include/SFML")
-add_subdirectory (Box2D)
-add_subdirectory (SFML/src/SFML)
-find_package(Qt5Core)
-add_executable( ${PROJECT_NAME} main.cpp)
-target_link_libraries( ${PROJECT_NAME} -lBox2D -lsfml-graphics -lsfml-window -lsfml-system)
