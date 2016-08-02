@@ -13,8 +13,10 @@ Download and install Qt Creator, then import the project by clicking on File > O
 SFML: 
 http://www.sfml-dev.org/tutorials/2.3/
 
-Box2D:
-Necessary files are included, no need to download anything
+Box2D: 
+
+Necessary files are included, no need to download anything. 
+
 If you need to download it anyway, the source files can be downloaded from the link below
 https://github.com/erincatto/Box2D 
 
