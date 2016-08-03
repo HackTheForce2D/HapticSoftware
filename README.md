@@ -1,9 +1,9 @@
+
 # HapticSoftware
 
 This application is intended to communicate with a 2-DOF haptic device, allowing the user to feel a force feedback from interactions with virtual objects in a physics simulation.
 
-
-This application uses the libraries Qt 5.6, SFML 2.3.2 and Box2D 2.3.2. Instructions for installing the libraries can be found in the following links: 
+This application uses the libraries Qt 5.6, SFML and Box2D. Instructions for installing the libraries can be found in the following links: 
 
 Qt: 
 https://www.qt.io/download/ 
@@ -13,7 +13,11 @@ Download and install Qt Creator, then import the project by clicking on File > O
 SFML: 
 http://www.sfml-dev.org/tutorials/2.3/
 
-Box2D:
+Box2D: 
+
+Necessary files are included, no need to download anything. 
+
+If you need to download it anyway, the source files can be downloaded from the link below
 https://github.com/erincatto/Box2D 
 
 Download the source code by clicking on Download ZIP on the top right corner, extract it to a folder in the computer and follow the instructions in the file Box2D/Building.txt 
