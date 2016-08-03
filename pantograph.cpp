@@ -11,6 +11,8 @@ const float Pantograph::MAX_TORQUE = 500;
 Pantograph::Pantograph()
 {
     // Initialize the pantograph's parameters at default values
+    // (these values are the result of the optimization for the
+    // robot emulator>)
     a = 61.2041;
     b = 100.724;
     c = 131.68;

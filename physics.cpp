@@ -140,7 +140,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                                    ball.getNode(i-1)->GetWorldCenter());
             world->CreateJoint(&nodeLinkDef);
             nodeLinkMotorDef.Initialize(ballNode,ball.getNode(i-1));
-            //world->CreateJoint(&nodeLinkMotorDef);
+            world->CreateJoint(&nodeLinkMotorDef);
         }
         ball.addNode(ballNode);
     }
@@ -149,7 +149,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                            ball.getNode(1)->GetWorldCenter());
     world->CreateJoint(&nodeLinkDef);
     nodeLinkMotorDef.Initialize(ball.getNode(nodeCount-1),ball.getNode(1));
-    //world->CreateJoint(&nodeLinkMotorDef);
+    world->CreateJoint(&nodeLinkMotorDef);
     ball.finish();
     ball.setName("Ball");
     ball.setTransform(physics2graphics);
@@ -241,6 +241,8 @@ void Physics::createBall(b2Vec2 position, float radius)
     createBall(position,radius,stiffness,damping,density,0.2);
 }
 
+// Rigid transformation plus scaling to convert the simulation coordinates
+// in meters to the display window coordinates in pixels
 void Physics::setTransform(sf::Transform t)
 {
     physics2graphics = t;
@@ -283,8 +285,11 @@ void Physics::setHapticInterface(HapticInterface *i)
 
 void Physics::step()
 {
+    // Get the updated position from the TCP interface
     QVector2D position(hapticDevice->getPosition());
+    // Update the force on the effector
     emit forceUpdated(effector.updateForce(position));
+    // Step the simulation
     world->Step(timeStep,velocityIterations, positionIterations);
 }
 
