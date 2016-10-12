@@ -7,11 +7,149 @@
  * (to lighten the Physics class and improve encapsulation) and also needs to
  * be split into a few subclasses for the various types of objects
 */
+
+const int  Body::FORCE_FACTOR = 20;
 Body::Body()
 {
     id = rand()*rand();
     name = "object";
     isSelected = false;
+    nodeList = QVector<b2Body*> (0);
+}
+
+void Body::createSolidCircle(b2World *world, b2Vec2 position,float radius,
+                             float density,bool isStatic=true)
+{
+    b2BodyDef rigidBallDef; //static body by default
+    rigidBallDef.position.Set(position.x,position.y);
+    if (!isStatic)
+    {
+        rigidBallDef.type = b2_dynamicBody;
+    }
+    b2Body* rigidBallBody = world->CreateBody(&rigidBallDef);
+    b2CircleShape rigidBallShape;
+    rigidBallShape.m_radius = radius;
+    b2FixtureDef rigidBallFixtureDef;
+    rigidBallFixtureDef.density = density;
+    rigidBallFixtureDef.shape = &rigidBallShape;
+    //fulcrum only supports the bar and doesn't collide with anything
+    //if(canCollide == false)
+    //{
+        //rigidBallFixtureDef.filter.categoryBits = 0;
+    //}
+    rigidBallBody->CreateFixture(&rigidBallFixtureDef);
+    setRadius(radius);
+    addNode(rigidBallBody);
+    finish();
+    setType(RIGIDBALL);
+    setName("Rigid Circle");
+
+}
+void Body::createSolidLine(b2World *world, b2Vec2 position,float rotation,
+                           b2Vec2 size,float density, bool isStatic= true)
+{
+    setType(WALL);
+    std::cout << "Body: creating wall: position: " << position.x << ","
+              << position.y <<" Size:" << size.x << "," << size.y << std::endl;
+    b2BodyDef wallDef; //static body by default
+    wallDef.position.Set(position.x,position.y);
+    wallDef.angle = rotation;
+    if (!isStatic)
+    {
+        wallDef.type = b2_dynamicBody;
+    }
+    b2Body* wallBody = world->CreateBody(&wallDef);
+    b2PolygonShape wallShape;
+    wallShape.SetAsBox(size.x,size.y);
+    b2FixtureDef wallFixtureDef;
+    wallFixtureDef.shape = &wallShape;
+    wallFixtureDef.density = density;
+    wallBody->CreateFixture(&wallFixtureDef);
+    addNode(wallBody);
+    finish();
+    setName("Rigid Line");
+    //setWallPosition(rotation*180/M_PI);
+    setWallPosition();
+}
+
+void Body::createElasticCircle(b2World *world,b2Vec2 position,float radius, float stiffness,
+                               float damping, float  density, float maxSpacing,bool isStatic = true)
+{
+    setType(BALL);
+    float nodeRadius = maxSpacing*.45;
+    setNodeRadius(nodeRadius);
+    float mass(density*radius*radius);
+    int nodeCount = (2*M_PI*radius/maxSpacing); //not including center
+    float nodeDensity(mass/(nodeRadius*nodeRadius*(nodeCount+1)));
+    b2BodyDef ballNodeDef;
+    ballNodeDef.linearDamping = 1;
+    ballNodeDef.angularDamping = 1;
+    b2CircleShape ballNodeShape;
+    ballNodeShape.m_radius = nodeRadius;
+    b2FixtureDef ballFixtureDef;
+    ballFixtureDef.shape = &ballNodeShape;
+    ballFixtureDef.density = nodeDensity;
+    b2DistanceJointDef nodeLinkDef;
+    b2MotorJointDef nodeLinkMotorDef;
+    // Smaller stiffness in the link from the center to the edge
+    // So that the effector can deform the ball without penetrating it
+    nodeLinkDef.frequencyHz = sqrt((stiffness)*FORCE_FACTOR/mass);
+    nodeLinkDef.dampingRatio = damping;
+    nodeLinkMotorDef.correctionFactor = stiffness;
+    nodeLinkMotorDef.maxForce = stiffness*radius;
+    nodeLinkMotorDef.maxTorque = 0;
+
+    //center
+    ballNodeDef.position.Set(position.x,position.y);
+    if (!isStatic)
+    {
+        ballNodeDef.type = b2_dynamicBody;
+    }
+    b2Body* ballCenter = world->CreateBody(&ballNodeDef);
+    ballCenter->CreateFixture(&ballFixtureDef);
+    addNode(ballCenter);
+    ballNodeDef.type = b2_dynamicBody;
+    //circle
+    b2Vec2 nodePosition;
+    //b2Body* firstNode =ballCenter,lastNode = ballCenter;
+    for(int i(0);i<nodeCount;i++)
+    {
+        ballNodeDef.type = b2_dynamicBody;
+        nodePosition = position + radius*b2Vec2(cos(2*M_PI*i/nodeCount),
+                                                sin(2*M_PI*i/nodeCount));
+        ballNodeDef.position.Set(nodePosition.x,nodePosition.y);
+        b2Body* ballNode = world->CreateBody(&ballNodeDef);
+        ballNode->CreateFixture(&ballFixtureDef);
+        nodeLinkDef.Initialize(ballCenter,ballNode,
+                               ballCenter->GetWorldCenter(),
+                               ballNode->GetWorldCenter());
+        world->CreateJoint(&nodeLinkDef);
+        nodeLinkMotorDef.Initialize(ballCenter,ballNode);
+        world->CreateJoint(&nodeLinkMotorDef);
+        if(i>0)
+        {
+            nodeLinkDef.Initialize(ballNode,getNode(i-1),
+                                   ballNode->GetWorldCenter(),
+                                   getNode(i-1)->GetWorldCenter());
+            world->CreateJoint(&nodeLinkDef);
+            nodeLinkMotorDef.Initialize(ballNode,getNode(i-1));
+            world->CreateJoint(&nodeLinkMotorDef);
+        }
+        addNode(ballNode);
+    }
+    nodeLinkDef.Initialize(getNode(nodeCount-1),getNode(1),
+                           getNode(nodeCount-1)->GetWorldCenter(),
+                           getNode(1)->GetWorldCenter());
+    world->CreateJoint(&nodeLinkDef);
+    nodeLinkMotorDef.Initialize(getNode(nodeCount-1),getNode(1));
+    world->CreateJoint(&nodeLinkMotorDef);
+    finish();
+    setName("Elastic Circle");
+}
+void Body::createElasticLine()
+{
+    setType(PLANE);
+
 }
 
 // Id allows two Body instances to be compared
@@ -41,6 +179,13 @@ void Body::setName(QString newName)
 void Body::setSelected(bool selected)
 {
     isSelected = selected;
+}
+
+void Body::setRadius(float radius_)
+{
+    radius = radius_;
+    rigidBall.setRadius(radius);
+    rigidBall.setOrigin(radius,radius);
 }
 
 // Radius of the small rigid object that compose an elastic object
@@ -80,7 +225,14 @@ void Body::draw(sf::RenderTarget& target, sf::RenderStates states) const
     //states.texture = &m_texture;
     // Transform
     states.transform *= physics2graphics;
-    target.draw(vertices, states);
+    if(bodyType == RIGIDBALL)
+    {
+        target.draw(rigidBall, states);
+    }else
+    {
+        target.draw(vertices, states);
+    }
+
 }
 
 // Update the position of the graphical object to match that of the physical
@@ -113,20 +265,27 @@ void Body::updatePosition()
         }
     } else if(bodyType == WALL)
     {
+        setWallPosition();
         for(int i(0);i<4;i++)
         {
             if(isSelected) vertices[i].color = sf::Color::Green;
             else vertices[i].color = sf::Color::White;
         }
+    }else if(bodyType == RIGIDBALL)
+    {
+        rigidBall.setPosition(convertPosition(nodeList[0]->GetPosition()));
+        if(isSelected) rigidBall.setFillColor(sf::Color::Green);
+        else rigidBall.setFillColor(sf::Color(150,150,200));
     }
     //TODO : solid wall
 }
 
-void Body::setWallPosition(float rotation)
-//function only needs to be called once, since the wall won't move
+void Body::setWallPosition()
 {
     if(bodyType == WALL)
     {
+        float rotation = nodeList[0]->GetAngle();
+        rotation *= 180.f/M_PI;
         sf::Vector2f p0 = convertPosition(nodeList[0]->GetPosition());
         rotateWall = sf::Transform::Identity;
         rotateWall.rotate(rotation,p0);
@@ -166,15 +325,23 @@ bool Body::operator==(const Body& rhs)
 void Body::destroyNodes()
 {
         size_t numberOfNodes(nodeList.size());
-        std::cout << numberOfNodes << std::endl;
+        std::cout << "Body: destroying "<< numberOfNodes<< " nodes..." << std::flush;
         for(size_t i(0); i<numberOfNodes; i++)
         {
            nodeList[i]->GetWorld()->DestroyBody(nodeList[i]);
         }
+     std::cout << "ok" << std::endl;
 }
 
 // Return true if given position is within the Body's bounding box
 bool Body::contains(sf::Vector2f position)
 {
+    if(bodyType == RIGIDBALL)
+    {
+        sf::Vector2f bodyPos = rigidBall.getPosition();
+        return (pow(bodyPos.x - position.x,2)+pow(bodyPos.y - position.y,2)
+                < pow(rigidBall.getRadius(),2));
+    }
     return vertices.getBounds().contains(position);
+
 }

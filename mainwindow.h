@@ -30,6 +30,8 @@ public slots:
 
     void onCalibrationFinished();
 
+    void onDeleteKeyPressed();
+
 private slots:
 
     void on_actionConnect_triggered();

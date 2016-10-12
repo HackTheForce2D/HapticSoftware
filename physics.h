@@ -19,7 +19,6 @@ class Physics : public QThread
 public:
     Physics();
     static const sf::Vector2f TOP_LEFT, BOTTOM_RIGHT;
-    static const int FORCE_FACTOR;
     void setTimeStep(double timeStep);
     void createEntities();
     void setStiffness(int bodyIndex, double frequence,double damping);
@@ -32,6 +31,7 @@ public:
     Effector getEffector();
     void setTransform(sf::Transform t);
     void setHapticInterface(HapticInterface *i);
+    void requestUpdate(); // Made things worse
     void updateBodies();
     void run();
 
@@ -42,16 +42,20 @@ public slots:
     void reset();
     void selectBody(int);
     void deleteBody(int index);
-    void setDensity(float newDensity);
-    void setStiffness(float newStiffness);
-    void setDamping(float newDamping);
-    void createBall(b2Vec2 position, float radius);
+    void setObjectProperties(float newDensity,float newStiffness,
+                             float newDamping);
+    void setRigid(bool isRigid);
+    void setStatic(bool isStatic);
+    void createNewCircle(b2Vec2 position, float radius);
+    void createNewBox(b2Vec2 position, float rotation, b2Vec2 size);
+
 
 
 signals:
     void worldCreated();
     void forceUpdated(QVector2D force);
     void objectListUpdated(QList<Body> list);
+    void stopDisplay(bool stop);
 
 
 private:
@@ -62,18 +66,22 @@ private:
     b2World* world;
     QTimer *timer;
     float density,stiffness,damping;
+    bool newObjectIsRigid, newObjectIsStatic;
+    bool updateRequested;
     HapticInterface *hapticDevice;
     sf::Transform physics2graphics,device2physics;
     QList<Body> workspaceWalls;
     QList<Body> bodyList; //Model for the ListView
     Effector effector;
     QVector2D endEffectorRealPosition;
+    void createBall(b2Vec2 position, float radius, bool isStatic);
+    void createRigidBall(b2Vec2 position, float radius, bool isStatic);
     void createSolidWall(b2Vec2 position, float rotation,
-                         b2Vec2 size, bool isWorkspace);
+                         b2Vec2 size, bool isWorkspace, bool isStatic);
     void createWorkspace(float left, float right,
                          float bottom, float top, float thickness);
-    void createBall(b2Vec2 position,float radius, float stiffness,
-                    float damping, float density, float maxSpacing);
+    void createBall(b2Vec2 position, float radius, float stiffness,
+                    float damping, float density, float maxSpacing, bool isStatic);
     void createEffector(float radius);
     void createPlane();
     void createEffector();

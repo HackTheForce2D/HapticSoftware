@@ -36,10 +36,14 @@ QVector2D HapticInterface::getVelocity()
 
 bool HapticInterface::connectToHost(QString host,int port)
 {
+    bool connected;
+    std::cout << "Connecting" << std::endl;
     device->connectToHost(host,port);
     connect(device, SIGNAL(connected()), this, SLOT(reportConnected()));
     connect(device, SIGNAL(disconnected()), this, SLOT(reportDisconnected()));
-    return device->waitForConnected();
+    connected = device->waitForConnected(1000);
+    std::cout << "Connected: " << connected << std::endl;
+    return connected;
 }
 
 void HapticInterface::sendCalibrationAngle(int index)

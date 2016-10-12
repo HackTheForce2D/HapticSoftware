@@ -3,12 +3,11 @@
 
 const sf::Vector2f Physics::TOP_LEFT = sf::Vector2f(-17.7,10);
 const sf::Vector2f Physics::BOTTOM_RIGHT = sf::Vector2f(17.7,-10);
-const int  Physics::FORCE_FACTOR = 20;
 
 Physics::Physics()
 {
     // Parameters for Box2D
-    gravity = b2Vec2(0.0f, 0.0f);
+    gravity = b2Vec2(0.0f, -10.0f);
     world = new b2World(gravity);
     velocityIterations = 6;
     positionIterations = 2;
@@ -17,6 +16,7 @@ Physics::Physics()
     damping = .5;
     stiffness = 10;
     timer = new QTimer(this);
+    updateRequested = false;
 
     // Set the coordinate transform to convert real workspace coordinates
     // into physical simulation coordinates
@@ -42,121 +42,60 @@ Physics::Physics()
 
 
 void Physics::createSolidWall(b2Vec2 position, float rotation,
-                              b2Vec2 size, bool isWorkspace=false)
+                              b2Vec2 size, bool isWorkspace=false,
+                              bool isStatic = true)
 {
+    emit stopDisplay(true);
     Body wall;
-    wall.setType(WALL);
-    b2BodyDef wallDef; //static body by default
-    wallDef.position.Set(position.x,position.y);
-    wallDef.angle = rotation;
-    b2Body* wallBody = world->CreateBody(&wallDef);
-    b2PolygonShape wallShape;
-    wallShape.SetAsBox(size.x,size.y);
-    b2FixtureDef wallFixtureDef;
-    wallFixtureDef.shape = &wallShape;
-    wallBody->CreateFixture(&wallFixtureDef);
-    wall.addNode(wallBody);
-    wall.finish();
-    wall.setName("Wall");
-    wall.setWallPosition(rotation*180/pi);
+    wall.createSolidLine(world,position,rotation,size,density,isStatic);
     if(isWorkspace)
     {
         workspaceWalls.append(wall);
     }else
     {
+        wall.setTransform(physics2graphics);
         bodyList.append(wall);
         emit objectListUpdated(bodyList);
     }
+    emit stopDisplay(false);
 }
 
 void Physics::createWorkspace(float left, float right, float bottom,
                               float top, float thickness)
 {
     createSolidWall(b2Vec2(left-thickness/2,(top+bottom)/2),  //left wall
-                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true);
+                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true,true);
     createSolidWall(b2Vec2(right+thickness/2,(top+bottom)/2), //right wall
-                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true);
+                    0.0f, b2Vec2(thickness/2,(top-bottom)/2+thickness),true,true);
     createSolidWall(b2Vec2((left+right)/2,bottom-thickness/2),//bottom wall
-                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true);
+                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true,true);
     createSolidWall(b2Vec2((left+right)/2,top+thickness/2),   //top wall
-                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true);
+                    0.0f, b2Vec2((right-left)/2+thickness,thickness/2),true,true);
 }
 
 void Physics::createBall(b2Vec2 position,float radius, float stiffness,
-                         float damping, float density, float maxSpacing)
+                         float damping, float density, float maxSpacing, bool isStatic = true)
 {
+    emit stopDisplay(true);
     Body ball;
-    ball.setType(BALL);
-    float nodeRadius = maxSpacing*.45;
-    ball.setNodeRadius(nodeRadius);
-    float mass(density*radius*radius);
-    int nodeCount = (2*pi*radius/maxSpacing); //not including center
-    float nodeDensity(mass/(nodeRadius*nodeRadius*(nodeCount+1)));
-    b2BodyDef ballNodeDef;
-    ballNodeDef.linearDamping = 1;
-    ballNodeDef.angularDamping = 1;
-    b2CircleShape ballNodeShape;
-    ballNodeShape.m_radius = nodeRadius;
-    b2FixtureDef ballFixtureDef;
-    ballFixtureDef.shape = &ballNodeShape;
-    ballFixtureDef.density = nodeDensity;
-    ballNodeDef.type = b2_dynamicBody;
-    b2DistanceJointDef nodeLinkDef;
-    b2MotorJointDef nodeLinkMotorDef;
-    // Smaller stiffness in the link from the center to the edge
-    // So that the effector can deform the ball without penetrating it
-    nodeLinkDef.frequencyHz = sqrt((stiffness)*FORCE_FACTOR/mass);
-    nodeLinkDef.dampingRatio = damping;
-    nodeLinkMotorDef.correctionFactor = stiffness;
-    nodeLinkMotorDef.maxForce = stiffness*radius;
-    nodeLinkMotorDef.maxTorque = 0;
-
-    //center
-    ballNodeDef.position.Set(position.x,position.y);
-    b2Body* ballCenter = world->CreateBody(&ballNodeDef);
-    ballCenter->CreateFixture(&ballFixtureDef);
-    ball.addNode(ballCenter);
-    //circle
-    b2Vec2 nodePosition;
-    //b2Body* firstNode =ballCenter,lastNode = ballCenter;
-    for(int i(0);i<nodeCount;i++)
-    {
-        ballNodeDef.type = b2_dynamicBody;
-        nodePosition = position + radius*b2Vec2(cos(2*pi*i/nodeCount),
-                                                sin(2*pi*i/nodeCount));
-        ballNodeDef.position.Set(nodePosition.x,nodePosition.y);
-        b2Body* ballNode = world->CreateBody(&ballNodeDef);
-        ballNode->CreateFixture(&ballFixtureDef);
-        nodeLinkDef.Initialize(ballCenter,ballNode,
-                               ballCenter->GetWorldCenter(),
-                               ballNode->GetWorldCenter());
-        world->CreateJoint(&nodeLinkDef);
-        nodeLinkMotorDef.Initialize(ballCenter,ballNode);
-        world->CreateJoint(&nodeLinkMotorDef);
-        if(i>0)
-        {
-            nodeLinkDef.Initialize(ballNode,ball.getNode(i-1),
-                                   ballNode->GetWorldCenter(),
-                                   ball.getNode(i-1)->GetWorldCenter());
-            world->CreateJoint(&nodeLinkDef);
-            nodeLinkMotorDef.Initialize(ballNode,ball.getNode(i-1));
-            world->CreateJoint(&nodeLinkMotorDef);
-        }
-        ball.addNode(ballNode);
-    }
-    nodeLinkDef.Initialize(ball.getNode(nodeCount-1),ball.getNode(1),
-                           ball.getNode(nodeCount-1)->GetWorldCenter(),
-                           ball.getNode(1)->GetWorldCenter());
-    world->CreateJoint(&nodeLinkDef);
-    nodeLinkMotorDef.Initialize(ball.getNode(nodeCount-1),ball.getNode(1));
-    world->CreateJoint(&nodeLinkMotorDef);
-    ball.finish();
-    ball.setName("Ball");
+    ball.createElasticCircle(world, position,radius, stiffness,damping,
+                             density,maxSpacing,isStatic);
     ball.setTransform(physics2graphics);
     bodyList.append(ball);
     emit objectListUpdated(bodyList);
+    emit stopDisplay(false);
 }
 
+void Physics::createRigidBall(b2Vec2 position,float radius,bool isStatic=true)
+{
+    emit stopDisplay(true);
+    Body rigidBall;
+    rigidBall.createSolidCircle(world,position,radius,density,isStatic);
+    rigidBall.setTransform(physics2graphics);
+    bodyList.append(rigidBall);
+    emit objectListUpdated(bodyList);
+    emit stopDisplay(false);
+}
 
 void Physics::createEffector(float radius)
 {
@@ -180,11 +119,13 @@ void Physics::createEffector(float radius)
  {
      createWorkspace(TOP_LEFT.x,BOTTOM_RIGHT.x,
                      BOTTOM_RIGHT.y,TOP_LEFT.y,.5);
-     createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.2);
-     createBall(b2Vec2(0,-5),2,35.f,0.5f,1,0.2);
-     createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.2);
-     createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2),false);
-     createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2),false);
+     createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.2,false);
+     createBall(b2Vec2(0,-5),2,35.f,0.5f,1,0.2,false);
+     createBall(b2Vec2(5,5),2,50.f,0.8f,2,0.2,false);
+     createSolidWall(b2Vec2(10,-2),1.2,b2Vec2(5,2),false,false);
+     createSolidWall(b2Vec2(-10,-2),-1.2,b2Vec2(5,2),false,true);
+     //createRigidBall(b2Vec2(6,5),2,false);
+     createSolidWall(b2Vec2(0.5,-1),0,b2Vec2(1,1),false,false);
      createEffector(1);
  }
 
@@ -221,24 +162,50 @@ Effector Physics::getEffector()
     return effector;
 }
 
-void Physics::setDensity(float newDensity)
+void Physics::setRigid(bool isRigid)
+{
+    newObjectIsRigid = isRigid;
+}
+
+void Physics::setStatic(bool isStatic)
+{
+    newObjectIsStatic = isStatic;
+}
+
+void Physics::createNewCircle(b2Vec2 position, float radius)
+{
+    if(newObjectIsRigid)
+    {
+        createRigidBall(position,radius,newObjectIsStatic);
+    }else
+    {
+        createBall(position,radius,stiffness,damping,
+                   density,0.2,newObjectIsStatic);
+    }
+}
+
+void Physics::createNewBox(b2Vec2 position, float rotation,
+                           b2Vec2 size)
+{
+    if(true)//if(newObjectIsRigid) // Finish the other one
+    {
+        //createSolidWall(position,rotation,size,false,newObjectIsStatic);
+        createSolidWall(position,rotation,size,false,newObjectIsStatic);
+    }
+}
+
+
+void Physics::setObjectProperties(float newDensity, float newStiffness, float newDamping)
 {
     density = newDensity;
-}
-
-void Physics::setStiffness(float newStiffness)
-{
     stiffness = newStiffness;
-}
-
-void Physics::setDamping(float newDamping)
-{
     damping = newDamping;
+    std::cout << density << " " << stiffness << " " << damping << " " << std::endl;
 }
 
-void Physics::createBall(b2Vec2 position, float radius)
+void Physics::createBall(b2Vec2 position, float radius, bool isStatic = true)
 {
-    createBall(position,radius,stiffness,damping,density,0.2);
+    createBall(position,radius,stiffness,damping,density,0.2,isStatic);
 }
 
 // Rigid transformation plus scaling to convert the simulation coordinates
@@ -269,12 +236,16 @@ void Physics::updateBodies()
 void Physics::deleteBody(int index)
 {
     stopSim();
+    emit stopDisplay(true);
     if(bodyList.size() > index && index >= 0)
     {
+        std::cout << "Physics: destroying body " << index << " :"
+                  << std::endl;
         bodyList[index].destroyNodes();
         bodyList.removeAt(index);
     }
     emit objectListUpdated(bodyList);
+    emit stopDisplay(false);
     startSim();
 }
 
@@ -291,6 +262,11 @@ void Physics::step()
     emit forceUpdated(effector.updateForce(position));
     // Step the simulation
     world->Step(timeStep,velocityIterations, positionIterations);
+    if(updateRequested)
+    {
+      updateBodies();
+      updateRequested = false;
+    }
 }
 
 void Physics::run(){
@@ -306,6 +282,11 @@ void Physics::startSim()
 void Physics::stopSim()
 {
     timer->stop();
+}
+
+void Physics::requestUpdate()
+{
+    updateRequested = true;
 }
 
 void Physics::reset()

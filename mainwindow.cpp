@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     deviceConnected = false;
+    indexSelected = -1;
     reportDeviceState();
 }
 
@@ -62,6 +63,16 @@ void MainWindow::on_buttonDelObject_clicked()
 {
     std::cout << "Index Selected : " << indexSelected << std::endl;
     emit deleteAt(indexSelected);
+    // Reset the index
+    indexSelected = -1;
+}
+
+void MainWindow::onDeleteKeyPressed()
+{
+    std::cout << "Index Selected : " << indexSelected << std::endl;
+    emit deleteAt(indexSelected);
+    // Reset the index
+    indexSelected = -1;
 }
 
 void MainWindow::bodyclicked(int bodyIndex)

@@ -42,24 +42,30 @@ int main(int argc, char *argv[])
                      &physics,SLOT(stopSim()));
 
     // Object creation signals
-    QObject::connect(&w, SIGNAL(deleteAt(int)),
-                     &physics,SLOT(deleteBody(int)));
-    QObject::connect(&w, SIGNAL(deleteAll()),
-                     &physics,SLOT(reset()));
     QObject::connect(&w, SIGNAL(createObject()),
                      &createObjectDialog,SLOT(show()));
     QObject::connect(&w, SIGNAL(createObject()),
                      display,SLOT(startCreationMode()));
-    QObject::connect(&createObjectDialog,SIGNAL(densityChanged(float)),
-                     &physics,SLOT(setDensity(float)));
-    QObject::connect(&createObjectDialog,SIGNAL(stiffnessChanged(float)),
-                     &physics,SLOT(setStiffness(float)));
-    QObject::connect(&createObjectDialog,SIGNAL(dampingChanged(float)),
-                     &physics,SLOT(setDamping(float)));
+    //Set object properties
+    QObject::connect(&createObjectDialog,SIGNAL(toggleRigid(bool)),
+                     &physics,SLOT(setRigid(bool)));
+    QObject::connect(&createObjectDialog,SIGNAL(toggleStatic(bool)),
+                     &physics,SLOT(setStatic(bool)));
+    QObject::connect(&createObjectDialog,SIGNAL(updateProperties(float,float,float)),
+                    &physics,SLOT(setObjectProperties(float,float,float)));
+    QObject::connect(&createObjectDialog,SIGNAL(newCircle()),
+                    display,SLOT(newCircle()));
+    QObject::connect(&createObjectDialog,SIGNAL(newBox()),
+                    display,SLOT(newBox()));
+    // Create objects
+    QObject::connect(display,SIGNAL(createNewCircle(b2Vec2,float)),
+                     &physics,SLOT(createNewCircle(b2Vec2,float)));
+    QObject::connect(display,SIGNAL(createNewBox(b2Vec2,float,b2Vec2)),
+                     &physics,SLOT(createNewBox(b2Vec2,float,b2Vec2)));
+
     QObject::connect(&createObjectDialog,SIGNAL(endCreationMode()),
                      display,SLOT(endCreationMode()));
-    QObject::connect(display,SIGNAL(createNewBody(b2Vec2,float)),
-                     &physics,SLOT(createBall(b2Vec2,float)));
+
 
     // Object selection signals
     QObject::connect(&w, SIGNAL(selectedObject(int)),
@@ -68,6 +74,17 @@ int main(int argc, char *argv[])
                      &w,SLOT(bodyclicked(int)));
     QObject::connect(display,SIGNAL(bodyClicked(int)),
                       &physics,SLOT(selectBody(int)));
+
+    // Object deletion signals
+    QObject::connect(&w, SIGNAL(deleteAt(int)),
+                     &physics,SLOT(deleteBody(int)));
+    QObject::connect(&w, SIGNAL(deleteAll()),
+                     &physics,SLOT(reset()));
+    QObject::connect(display,SIGNAL(deletePressed()),
+                      &w,SLOT(onDeleteKeyPressed()));
+    QObject::connect(&physics, SIGNAL(stopDisplay(bool)),
+                     display, SLOT(stopUpdating(bool)));
+
     QObject::connect(&connectionDialog,SIGNAL(connectToDevice(QString,int)),
                      &ethernetLink,SLOT(connectToHost(QString ,int)));
 

@@ -14,6 +14,10 @@ Visual::Visual(QWidget* Parent) :
     physics = 0;
     setMouseTracking(true);
     radius = 2;
+    newWallThickness = 1;
+    newObjectIsCircle = true;
+    stopUpdate = false;
+    graphicalThickness = newWallThickness*(this->size().width()/36);
     calibrationPoint = -1;
     calibrationTarget.setFillColor(sf::Color::Red);
     calibrationTarget.setRadius(5);
@@ -22,8 +26,18 @@ Visual::Visual(QWidget* Parent) :
     defineTransform(size());
 }
 
+//Check if a body is being deleted
+void Visual::stopUpdating(bool stop)
+{
+   stopUpdate = stop;
+   if(stopUpdate) std::cout << "Stopped display" << std::endl;
+   else std::cout << "Resume display" << std::endl;
+}
+
 void Visual::OnUpdate()
 {
+    //Don't update if a body is being created or deleted
+    if(stopUpdate) return;
     // Erase previous frame
     clear();
     draw(workspaceBounds);
@@ -57,7 +71,14 @@ void Visual::OnUpdate()
         // on cursor position (more options to be added later)
         if(creationMode)
         {
-            draw(newBall);
+            if(newObjectIsCircle)
+            {
+                draw(newBall);
+            }else if(position1Set)
+            {
+                draw(newWall);
+            }
+
         }
     }
 }
@@ -127,7 +148,35 @@ void Visual::mousePressEvent(QMouseEvent *event)
     clickedPos = physics2graphics.getInverse().transformPoint(clickedPos);
     // If the creation dialog is open, create a new body at this location
     if(creationMode){
-        emit createNewBody(b2Vec2(clickedPos.x,clickedPos.y),radius);
+        if(newObjectIsCircle)
+        {
+           emit createNewCircle(b2Vec2(clickedPos.x,clickedPos.y),radius);
+        }else
+        {
+            if(position1Set)
+            {
+                //position2 = b2Vec2(clickedPos.x,clickedPos.y);
+                //createNewBox(position1, position2,thickness)
+                position1 = physics2graphics.getInverse().transformPoint(position1);
+                position2 = physics2graphics.getInverse().transformPoint(position2);
+                graphicalThickness = newWallThickness;
+                updateNewWall();
+                emit createNewBox(b2Vec2(newWall.getPosition().x,
+                                         newWall.getPosition().y) ,
+                                  newWall.getRotation()*pi/180,
+                                  b2Vec2(newWall.getSize().x/2,
+                                         newWall.getSize().y/2));
+                position1Set = false;
+            }else
+            {
+                //position1 = b2Vec2(clickedPos.x,clickedPos.y);
+                position1 = sf::Vector2f(event->pos().x(),event->pos().y());
+                std::cout << "Visual: box pos " << position1.x << " " << position1.y << std::endl;
+                position1Set = true;
+            }
+        }
+        // Update the transform for the newly created body
+        //defineTransform(size());
     }
     // Otherwise, check if a body was clicked and select it
     // unselect all bodies if the user clicked on empty space (index = -1)
@@ -152,8 +201,45 @@ void Visual::mouseMoveEvent(QMouseEvent * event)
 {
     if(creationMode)
     {
-        newBall.setPosition(sf::Vector2f(event->pos().x(),event->pos().y()));
+        if(newObjectIsCircle)
+        {
+            newBall.setPosition(sf::Vector2f(event->pos().x(),event->pos().y()));
+        }else if(position1Set)
+        {
+            position2 = sf::Vector2f(event->pos().x(),event->pos().y());
+            updateNewWall();
+            //position2 = b2Vec2(clickedPos.x,clickedPos.y);
+           // sf::Vector2f mousePos(event->pos().x(),event->pos().y());
+           // mousePos = physics2graphics.getInverse().transformPoint(clickedPos);
+           // position2 = b2Vec2(event->pos().x(),event->pos().y());
+           // updateNewWall();
+
+            /*
+            newWallPos.x = (position1.x + position2.x)/2;
+            newWallPos.y = (position1.y + position2.y)/2;
+            newWall.setPosition(newWallPos);
+            newWall.setRotation(atan2(position2.x - position1.x,
+                                      position2.y - position1.y));
+            newWallLength = sqrt(pow(position2.x - position1.x,2)+
+                                 pow(position2.y - position1.y,2));
+            newWall.setSize(sf::Vector2f(newWallLength,newWallThickness));
+            newWall.setOrigin(sf::Vector2f(newWallLength/2,
+                                           newWallThickness/2));
+                                           */
+        }
     }
+}
+
+void Visual::newCircle()
+{
+    newObjectIsCircle = true;
+    position1Set = false;
+}
+
+void Visual::newBox()
+{
+    newObjectIsCircle = false;
+    position1Set = false;
 }
 
 void Visual::keyPressEvent(QKeyEvent * event)
@@ -162,6 +248,10 @@ void Visual::keyPressEvent(QKeyEvent * event)
     {
         emit calibrationPointEntered(calibrationPoint);
         nextCalibrationPoint();
+    }
+    else if(event->key() == Qt::Key_Delete)
+    {
+        emit deletePressed();
     }
 
 }
@@ -175,15 +265,41 @@ void Visual::resizeEvent(QResizeEvent *event)
 
 void Visual::wheelEvent(QWheelEvent *event)
 {
-    std::cout << event->delta() << std::endl;
+    //std::cout << event->delta() << std::endl;
     if(creationMode)
     {
-        radius +=((float)(event->delta())/1200);
-        if(radius > 4) radius = 4;
-        else if (radius < 1) radius = 1;
-        newBall.setRadius(radius*(this->size().width()/36));
-        newBall.setOrigin(sf::Vector2f(newBall.getRadius(),newBall.getRadius()));
+        if(newObjectIsCircle)
+        {
+            radius +=((float)(event->delta())/1200);
+            if(radius > 4) radius = 4;
+            else if (radius < 1) radius = 1;
+            newBall.setRadius(radius*(this->size().width()/36));
+            newBall.setOrigin(sf::Vector2f(newBall.getRadius(),newBall.getRadius()));
+        }else
+        {
+            newWallThickness +=((float)(event->delta())/1200);
+            graphicalThickness = newWallThickness*(this->size().width()/36);
+            if(newWallThickness > 4) newWallThickness = 4;
+            else if (newWallThickness < 1) newWallThickness = 1;
+            updateNewWall();
+        }
+
     }
+}
+
+void Visual::updateNewWall()
+{
+    //position2 = b2Vec2(clickedPos.x,clickedPos.y);
+    newWallPos.x = (position1.x + position2.x)/2;
+    newWallPos.y = (position1.y + position2.y)/2;
+    newWall.setPosition(newWallPos);
+    newWall.setRotation((180/pi)*atan2(position2.y - position1.y,
+                              position2.x - position1.x));
+    newWallLength = sqrt(pow(position2.x - position1.x,2)+
+                         pow(position2.y - position1.y,2));    
+    newWall.setSize(sf::Vector2f(newWallLength,graphicalThickness));
+    newWall.setOrigin(sf::Vector2f(newWallLength/2,
+                                   graphicalThickness/2));
 }
 
 // Toggled if user opens the Add Object dialog window
