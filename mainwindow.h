@@ -61,6 +61,7 @@ signals:
     void deleteAll();
     void selectedObject(int index);
     void calibrationDemanded();
+    void mainWindowCreated();
 
 private:
     void reportDeviceState();

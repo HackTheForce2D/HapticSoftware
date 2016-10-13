@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     deviceConnected = false;
     indexSelected = -1;
     reportDeviceState();
+    emit mainWindowCreated();
 }
 
 MainWindow::~MainWindow()

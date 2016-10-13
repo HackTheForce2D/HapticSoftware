@@ -48,7 +48,7 @@ public slots:
     void setStatic(bool isStatic);
     void createNewCircle(b2Vec2 position, float radius);
     void createNewBox(b2Vec2 position, float rotation, b2Vec2 size);
-
+    void displayStopped(bool stop);
 
 
 signals:
@@ -68,6 +68,7 @@ private:
     float density,stiffness,damping;
     bool newObjectIsRigid, newObjectIsStatic;
     bool updateRequested;
+    bool isStopped;
     HapticInterface *hapticDevice;
     sf::Transform physics2graphics,device2physics;
     QList<Body> workspaceWalls;

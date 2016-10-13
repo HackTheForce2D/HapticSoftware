@@ -32,6 +32,8 @@ void Visual::stopUpdating(bool stop)
    stopUpdate = stop;
    if(stopUpdate) std::cout << "Stopped display" << std::endl;
    else std::cout << "Resume display" << std::endl;
+   physics->displayStopped(stop);
+   //emit displayStopped(stop);
 }
 
 void Visual::OnUpdate()
@@ -155,8 +157,6 @@ void Visual::mousePressEvent(QMouseEvent *event)
         {
             if(position1Set)
             {
-                //position2 = b2Vec2(clickedPos.x,clickedPos.y);
-                //createNewBox(position1, position2,thickness)
                 position1 = physics2graphics.getInverse().transformPoint(position1);
                 position2 = physics2graphics.getInverse().transformPoint(position2);
                 graphicalThickness = newWallThickness;
@@ -167,9 +167,9 @@ void Visual::mousePressEvent(QMouseEvent *event)
                                   b2Vec2(newWall.getSize().x/2,
                                          newWall.getSize().y/2));
                 position1Set = false;
+                graphicalThickness = newWallThickness*(this->size().width()/36);
             }else
             {
-                //position1 = b2Vec2(clickedPos.x,clickedPos.y);
                 position1 = sf::Vector2f(event->pos().x(),event->pos().y());
                 std::cout << "Visual: box pos " << position1.x << " " << position1.y << std::endl;
                 position1Set = true;
@@ -208,24 +208,6 @@ void Visual::mouseMoveEvent(QMouseEvent * event)
         {
             position2 = sf::Vector2f(event->pos().x(),event->pos().y());
             updateNewWall();
-            //position2 = b2Vec2(clickedPos.x,clickedPos.y);
-           // sf::Vector2f mousePos(event->pos().x(),event->pos().y());
-           // mousePos = physics2graphics.getInverse().transformPoint(clickedPos);
-           // position2 = b2Vec2(event->pos().x(),event->pos().y());
-           // updateNewWall();
-
-            /*
-            newWallPos.x = (position1.x + position2.x)/2;
-            newWallPos.y = (position1.y + position2.y)/2;
-            newWall.setPosition(newWallPos);
-            newWall.setRotation(atan2(position2.x - position1.x,
-                                      position2.y - position1.y));
-            newWallLength = sqrt(pow(position2.x - position1.x,2)+
-                                 pow(position2.y - position1.y,2));
-            newWall.setSize(sf::Vector2f(newWallLength,newWallThickness));
-            newWall.setOrigin(sf::Vector2f(newWallLength/2,
-                                           newWallThickness/2));
-                                           */
         }
     }
 }
@@ -338,10 +320,10 @@ void Visual::endCalibrationMode()
     emit readyToCalibrate();
 }
 
+
 void Visual::setPhysics(Physics *newPhysics)
 {
     physics = newPhysics;
-    physics->createEntities();
     physics->setTransform(physics2graphics);
     physics->startSim();
 }

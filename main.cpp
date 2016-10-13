@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     QObject::connect(buttonStop,SIGNAL(clicked()),
                      &physics,SLOT(stopSim()));
 
+
     // Object creation signals
     QObject::connect(&w, SIGNAL(createObject()),
                      &createObjectDialog,SLOT(show()));
@@ -84,6 +85,9 @@ int main(int argc, char *argv[])
                       &w,SLOT(onDeleteKeyPressed()));
     QObject::connect(&physics, SIGNAL(stopDisplay(bool)),
                      display, SLOT(stopUpdating(bool)));
+    // Replaced by a function call from Visual to Physics
+    //QObject::connect(display, SIGNAL(displayStopped(bool)),
+    //                 &physics, SLOT(displayStopped(bool)));
 
     QObject::connect(&connectionDialog,SIGNAL(connectToDevice(QString,int)),
                      &ethernetLink,SLOT(connectToHost(QString ,int)));
@@ -119,6 +123,7 @@ int main(int argc, char *argv[])
     ethernetLink.start();
     //Launch simulation thread
     physics.moveToThread(&physics);
+    physics.createEntities();
     physics.start();
 
     int exitValue(a.exec());

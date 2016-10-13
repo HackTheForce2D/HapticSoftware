@@ -13,8 +13,8 @@ public:
     Visual(QWidget* Parent);
     static const QVector2D TOP_LEFT;
     static const QVector2D BOTTOM_RIGHT;
-    void setPhysics(Physics *newPhysics);
     void startDisplay();
+    void setPhysics(Physics *newPhysics);
 
 public slots:
     void startCreationMode();
@@ -32,6 +32,7 @@ signals:
     void calibrationPointEntered(int index);
     void readyToCalibrate();
     void deletePressed();
+    //void displayStopped(bool stop);
 
 private:
     Physics *physics;

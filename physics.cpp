@@ -46,6 +46,7 @@ void Physics::createSolidWall(b2Vec2 position, float rotation,
                               bool isStatic = true)
 {
     emit stopDisplay(true);
+    while (!isStopped){usleep(1000);}
     Body wall;
     wall.createSolidLine(world,position,rotation,size,density,isStatic);
     if(isWorkspace)
@@ -77,6 +78,7 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
                          float damping, float density, float maxSpacing, bool isStatic = true)
 {
     emit stopDisplay(true);
+    while (!isStopped){usleep(1000);}
     Body ball;
     ball.createElasticCircle(world, position,radius, stiffness,damping,
                              density,maxSpacing,isStatic);
@@ -89,6 +91,12 @@ void Physics::createBall(b2Vec2 position,float radius, float stiffness,
 void Physics::createRigidBall(b2Vec2 position,float radius,bool isStatic=true)
 {
     emit stopDisplay(true);
+    while (!isStopped){usleep(1000);}
+    //{
+    //    usleep(1e6);
+    // std::cout << "Physics: waiting on dispĺay" << std::endl;
+    //}
+
     Body rigidBall;
     rigidBall.createSolidCircle(world,position,radius,density,isStatic);
     rigidBall.setTransform(physics2graphics);
@@ -117,6 +125,7 @@ void Physics::createEffector(float radius)
 
  void Physics::createEntities()
  {
+
      createWorkspace(TOP_LEFT.x,BOTTOM_RIGHT.x,
                      BOTTOM_RIGHT.y,TOP_LEFT.y,.5);
      createBall(b2Vec2(-5,5),2,15.f,0.5f,1,0.2,false);
@@ -189,7 +198,6 @@ void Physics::createNewBox(b2Vec2 position, float rotation,
 {
     if(true)//if(newObjectIsRigid) // Finish the other one
     {
-        //createSolidWall(position,rotation,size,false,newObjectIsStatic);
         createSolidWall(position,rotation,size,false,newObjectIsStatic);
     }
 }
@@ -237,6 +245,7 @@ void Physics::deleteBody(int index)
 {
     stopSim();
     emit stopDisplay(true);
+    while (!isStopped);
     if(bodyList.size() > index && index >= 0)
     {
         std::cout << "Physics: destroying body " << index << " :"
@@ -287,6 +296,11 @@ void Physics::stopSim()
 void Physics::requestUpdate()
 {
     updateRequested = true;
+}
+
+void Physics::displayStopped(bool stop)
+{
+    isStopped = stop;
 }
 
 void Physics::reset()

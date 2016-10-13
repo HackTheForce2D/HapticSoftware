@@ -14,6 +14,7 @@ Body::Body()
     id = rand()*rand();
     name = "object";
     isSelected = false;
+    defaultColor = sf::Color(255,255,255);
     nodeList = QVector<b2Body*> (0);
 }
 
@@ -21,6 +22,7 @@ void Body::createSolidCircle(b2World *world, b2Vec2 position,float radius,
                              float density,bool isStatic=true)
 {
     b2BodyDef rigidBallDef; //static body by default
+    defaultColor = sf::Color(255-15*density,255-15*density,150-15*density);
     rigidBallDef.position.Set(position.x,position.y);
     if (!isStatic)
     {
@@ -49,6 +51,7 @@ void Body::createSolidLine(b2World *world, b2Vec2 position,float rotation,
                            b2Vec2 size,float density, bool isStatic= true)
 {
     setType(WALL);
+    defaultColor = sf::Color(150-15*density,255-15*density,150-15*density);
     std::cout << "Body: creating wall: position: " << position.x << ","
               << position.y <<" Size:" << size.x << "," << size.y << std::endl;
     b2BodyDef wallDef; //static body by default
@@ -76,6 +79,7 @@ void Body::createElasticCircle(b2World *world,b2Vec2 position,float radius, floa
                                float damping, float  density, float maxSpacing,bool isStatic = true)
 {
     setType(BALL);
+    defaultColor = sf::Color(255-15*density,255-15*density,255-15*density);
     float nodeRadius = maxSpacing*.45;
     setNodeRadius(nodeRadius);
     float mass(density*radius*radius);
@@ -246,7 +250,7 @@ void Body::updatePosition()
         sf::Vector2f p0 = convertPosition(nodeList[0]->GetPosition());
         // Change the color of the central node if the object is selected
         if(isSelected) vertices[0].color = sf::Color::Green;
-        else vertices[0].color = sf::Color::White;
+        else vertices[0].color = defaultColor;
         vertices[0].position = p0;
         for(int i(1);i<nodeCount;i++)
         {
@@ -269,13 +273,13 @@ void Body::updatePosition()
         for(int i(0);i<4;i++)
         {
             if(isSelected) vertices[i].color = sf::Color::Green;
-            else vertices[i].color = sf::Color::White;
+            else vertices[i].color = defaultColor;
         }
     }else if(bodyType == RIGIDBALL)
     {
         rigidBall.setPosition(convertPosition(nodeList[0]->GetPosition()));
         if(isSelected) rigidBall.setFillColor(sf::Color::Green);
-        else rigidBall.setFillColor(sf::Color(150,150,200));
+        else rigidBall.setFillColor(defaultColor);
     }
     //TODO : solid wall
 }

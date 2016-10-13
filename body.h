@@ -45,6 +45,7 @@ private:
     int bodyType;
     long int id;
     QString name;
+    sf::Color defaultColor;
     bool isSelected;
     float nodeRadius; //for ball
     float rotation; //for wall
